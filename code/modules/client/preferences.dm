@@ -123,7 +123,7 @@ datum/preferences
 
 	return 1
 
-/datum/preferences/proc/ShowChoices(mob/user)
+/datum/preferences/proc/get_content(mob/user)
 	if(!SScharacter_setup.initialized)
 		return
 	if(!user || !user.client)
@@ -151,11 +151,27 @@ datum/preferences
 	dat += player_setup.header()
 	dat += "<br><HR></center>"
 	dat += player_setup.content(user)
+	update_setup_window(user)
 
-	dat += "</html></body>"
-	var/datum/browser/popup = new(user, "Character Setup","Character Setup", 1200, 800, src)
-	popup.set_content(dat)
-	popup.open()
+/datum/preferences/proc/open_setup_window(mob/user)
+	var/datum/browser/popup = new(user, "preferences_browser", "Character Setup", 800, 800)
+	var/content = {"
+	<script type='text/javascript'>
+		function update_content(data){
+			document.getElementById('content').innerHTML = data
+		}
+	</script>
+	<html><body>
+		<div id='content'>Loading...</div>
+	</body></html>
+	"}
+	popup.set_content(content)
+	popup.open(FALSE) // Skip registring onclose on the browser pane
+	onclose(user, "preferences_window", src) // We want to register on the window itself
+	update_setup_window(user)
+
+/datum/preferences/proc/update_setup_window(mob/user)
+	send_output(user, get_content(user), "preferences_browser:update_content")
 
 /datum/preferences/proc/process_link(mob/user, list/href_list)
 
@@ -168,7 +184,7 @@ datum/preferences
 		else
 			to_chat(user, "<span class='danger'>The forum URL is not set in the server configuration.</span>")
 			return
-	ShowChoices(usr)
+	update_setup_window(usr)
 	return 1
 
 /datum/preferences/Topic(href, list/href_list)
@@ -205,7 +221,7 @@ datum/preferences
 	else
 		return 0
 
-	ShowChoices(usr)
+	update_setup_window(usr)
 	return 1
 
 /datum/preferences/proc/copy_to(mob/living/carbon/human/character, is_preview_copy = FALSE)
