@@ -129,12 +129,7 @@ datum/preferences
 	if(!user || !user.client)
 		return
 
-	if(!get_mob_by_key(client_ckey))
-		to_chat(user, "<span class='danger'>No mob exists for the given client!</span>")
-		close_load_dialog(user)
-		return
-
-	var/dat = "<html><body><center>"
+	var/dat = "<center>"
 
 	if(is_guest)
 		dat += "Please create an account to save your preferences. If you have an account and are seeing this, please adminhelp for assistance."
@@ -151,27 +146,25 @@ datum/preferences
 	dat += player_setup.header()
 	dat += "<br><HR></center>"
 	dat += player_setup.content(user)
-	update_setup_window(user)
+	return dat
 
 /datum/preferences/proc/open_setup_window(mob/user)
-	var/datum/browser/popup = new(user, "preferences_browser", "Character Setup", 800, 800)
+	if(!SScharacter_setup.initialized)
+		return
+	var/datum/browser/popup = new(user, "preferences_browser", "Character Setup", 1200, 800, src)
 	var/content = {"
 	<script type='text/javascript'>
 		function update_content(data){
-			document.getElementById('content').innerHTML = data
+			document.getElementById('content').innerHTML = data;
 		}
 	</script>
-	<html><body>
-		<div id='content'>Loading...</div>
-	</body></html>
+	<div id='content'>[get_content(user)]</div>
 	"}
 	popup.set_content(content)
-	popup.open(FALSE) // Skip registring onclose on the browser pane
-	onclose(user, "preferences_window", src) // We want to register on the window itself
-	update_setup_window(user)
+	popup.open()
 
 /datum/preferences/proc/update_setup_window(mob/user)
-	send_output(user, get_content(user), "preferences_browser:update_content")
+	send_output(user, url_encode(get_content(user)), "preferences_browser.browser:update_content")
 
 /datum/preferences/proc/process_link(mob/user, list/href_list)
 

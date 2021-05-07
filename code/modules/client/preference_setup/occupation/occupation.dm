@@ -373,7 +373,6 @@
 			return
 		var/value = text2num(href_list["newvalue"])
 		update_skill_value(J, S, value)
-		pref.open_setup_window(user)
 		panel.set_content(generate_skill_content(J))
 		panel.open()
 		return TOPIC_REFRESH
