@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: gen-docs
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
       - name: Setup Cache
         uses: actions/cache@a7c34adf76222e77931dedbf4a45b2e4648ced19
         with:
