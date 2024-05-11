@@ -10,18 +10,12 @@
 	var/maximum_mobs = 10
 	var/mob_spawn_chance = 3
 	var/turf_conversion_range = 5
-
-	/// Whether or not the 'pulse' should happen, changed to true if the probability check passes in setup()
-	var/should_do_pulse = FALSE
+	var/next_zap = 0
 
 
 /datum/event/bsd_instability/setup()
 	if (severity <= EVENT_LEVEL_MODERATE)
 		return
-	if (prob(55))
-		return
-	should_do_pulse = TRUE
-
 
 /datum/event/bsd_instability/announce()
 	switch (severity)
@@ -84,7 +78,18 @@
 				playsound(turf, "sound/effects/supermatter.ogg", 75, TRUE)
 				var/mob/living/simple_animal/hostile/bluespace/bluespace_ghost = new (turf)
 				mobs += bluespace_ghost
-	if (!should_do_pulse || activeFor != (endWhen - 30))
+		if (next_zap <= world.time)
+			for (var/obj/machinery/bluespacedrive/drive in drives)
+
+				var/turf/T = get_random_turf_in_range(drive, 5)
+
+				var/datum/lightning_vector/start = new (drive.x * world.icon_size, drive.y * world.icon_size)
+				var/datum/lightning_vector/dest  = new (T.x * world.icon_size, T.y * world.icon_size)
+				var/bolt/b = new(start, dest, 50)
+				b.Draw(drive.z, color = "#01c4ff", thickness = 2)
+
+				next_zap = world.time + rand(5, 10) SECONDS
+	if (activeFor != (endWhen - 30))
 		return
 	command_announcement.Announce(
 		"PRIORITY ALERT: System flush required to disperse esoteric hyper-particle buildup. Brace for chrono-phasic sweep.",
@@ -117,16 +122,10 @@
 		stair.bluespace_affected = FALSE
 	for (var/obj/structure/ladder/ladder in ladders)
 		ladder.bluespace_affected = FALSE
-	if (should_do_pulse)
-		command_announcement.Announce(
-			"Particle flush complete, containment fields restablished. All systems nominal.",
-			"[location_name()] Bluespace Drive Monitoring"
-		)
-	else
-		command_announcement.Announce(
-			"Containment fields re-modulated. All systems nominal.",
-			"[location_name()] Bluespace Drive Monitoring"
-		)
+	command_announcement.Announce(
+		"Particle flush complete, containment fields restablished. All systems nominal.",
+		"[location_name()] Bluespace Drive Monitoring"
+	)
 	LAZYCLEARLIST(pads)
 	LAZYCLEARLIST(drives)
 	LAZYCLEARLIST(stairs)

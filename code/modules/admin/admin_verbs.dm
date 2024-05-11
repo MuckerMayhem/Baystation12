@@ -100,7 +100,8 @@ var/global/list/admin_verbs_admin = list(
 	/datum/admins/proc/SetRoundLength,
 	/datum/admins/proc/ToggleContinueVote,
 	/datum/admins/proc/togglemoderequirementchecks,
-	/client/proc/delete_crew_record
+	/client/proc/delete_crew_record,
+	/client/proc/create_lightning
 )
 var/global/list/admin_verbs_ban = list(
 	/client/proc/unban_panel,
@@ -927,3 +928,25 @@ var/global/list/admin_verbs_mod = list(
 	if (check == "Yes")
 		GLOB.all_crew_records.Remove(record)
 		log_and_message_admins("has removed [record.get_name()], [record.get_job()]'s crew record.")
+
+
+/client/proc/create_lightning()
+	set category = "Fun"
+	set name = "L Test"
+	set desc = "Creates a lightning bolt."
+
+	var/turf/T = pick(circlerangeturfs(mob.loc, 3))
+
+	var/datum/lightning_vector/start = new (usr.x * world.icon_size, usr.y * world.icon_size)
+	var/datum/lightning_vector/dest  = new (T.x * world.icon_size, T.y * world.icon_size)
+
+	// shoot from hand
+	start.X += (WEST & usr.dir) ? 10 : 22
+	start.Y += 14
+
+	// middle of clicked turf
+	dest.X += 16
+	dest.Y += 16
+
+	var/bolt/b = new(start, dest, 50)
+	b.Draw(usr.z, color = "#FFF001")
