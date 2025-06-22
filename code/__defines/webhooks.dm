@@ -3,3 +3,5 @@
 #define WEBHOOK_ROUNDSTART        "webhook_roundstart"
 #define WEBHOOK_SUBMAP_LOADED     "webhook_submap_loaded"
 #define WEBHOOK_CUSTOM_EVENT      "webhook_custom_event"
+#define WEBHOOK_GET_MATRIX_ROOMS  "webhook_get_matrix_rooms"
+#define WEBHOOK_SEND_MATRIX_MESSAGE "webhook_send_matrix_message"

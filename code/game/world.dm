@@ -438,6 +438,50 @@ GLOBAL_VAR_AS(world_topic_last, world.timeofday)
 		else
 			return "Database connection failed or not set up"
 
+	else if (copytext(T,1,6) == "room1")
+		var/input[] = params2list(T)
+		if(input["key"] != config.comms_password)
+			SET_THROTTLE(30 SECONDS, "Bad Comms Key")
+			return "Bad Key"
+
+		var/room_index = 1
+		if (!length(ntnet_global.chat_channels))
+			for (var/room in input)
+				if ("room[room_index]" in input)
+					var/room_name = splittext(input["room[room_index]"], "=")[1]
+					var/datum/ntnet_conversation/conversation = new/datum/ntnet_conversation(1)
+					conversation.title = room_name
+					room_index = room_index + 1
+					log_and_message_admins("Recieved room: [room_name]")
+			return "Recieved room list"
+
+		for (var/room in input)
+			if ("room[room_index]" in input)
+				var/room_name = splittext(input["room[room_index]"], "=")[1]
+				room_index = room_index + 1
+
+				for (var/datum/ntnet_conversation/existing_convo in ntnet_global.chat_channels)
+					if (existing_convo.title == room_name)
+						log_and_message_admins("Recieved room: [room_name] - already exists")
+						continue
+					var/datum/ntnet_conversation/conversation = new/datum/ntnet_conversation(1)
+					conversation.title = room_name
+					log_and_message_admins("Recieved room: [room_name]")
+		return "Recieved room list"
+	else if (copytext(T,1,8) == "room_id")
+		var/input[] = params2list(T)
+		if(input["key"] != config.comms_password)
+			SET_THROTTLE(30 SECONDS, "Bad Comms Key")
+			return "Bad Key"
+
+		for (var/datum/ntnet_conversation/conversation in ntnet_global.chat_channels)
+			if (conversation.title == input["room_id"])
+				conversation.add_message(input["msg"], input["sender"])
+				break
+		log_and_message_admins("Recieved message from [input["room_id"]], message: [input["msg"]]")
+
+		return "Recieved room message"
+
 
 /world/Reboot(reason)
 	/*spawn(0)

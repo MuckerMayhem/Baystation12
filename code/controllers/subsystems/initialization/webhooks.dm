@@ -89,4 +89,5 @@ SUBSYSTEM_DEF(webhooks)
 
 /hook/roundstart/proc/run_webhook()
 	SSwebhooks.send(WEBHOOK_ROUNDSTART, list("url" = get_world_url()))
+	SSwebhooks.send(WEBHOOK_GET_MATRIX_ROOMS, list())
 	return 1

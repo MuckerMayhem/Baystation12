@@ -42,6 +42,7 @@
 			return
 		channel.add_message(message, username)
 		ntnrc_alert("[username] sent an NTNRC message.")
+		SSwebhooks.send(WEBHOOK_SEND_MATRIX_MESSAGE, list("sender" = username, "channel_name" = channel.title, "message" = message))
 
 	if(href_list["PRG_joinchannel"])
 		. = TOPIC_HANDLED
