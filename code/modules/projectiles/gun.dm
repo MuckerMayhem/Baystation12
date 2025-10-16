@@ -426,11 +426,7 @@
 	var/acc_mod = burst_accuracy[min(burst, length(burst_accuracy))]
 	var/disp_mod = dispersion[min(burst, length(dispersion))]
 	var/stood_still = last_handled
-	//Not keeping gun active will throw off aim (for non-Masters)
-	if(user.skill_check(SKILL_WEAPONS, SKILL_MASTER))
-		stood_still = min(user.l_move_time, last_handled)
-	else
-		stood_still = max(user.l_move_time, last_handled)
+	stood_still = max(user.l_move_time, last_handled)
 
 	stood_still = max(0,round((world.time - stood_still)/10) - 1)
 	if(stood_still)
