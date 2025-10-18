@@ -95,7 +95,8 @@
 	if (istype(target, /obj/item/ammo_magazine) && (target.loc == user || target.loc.loc == user)) //Get around bags, webbing, etc
 		if (user.skill_check(SKILL_WEAPONS, SKILL_MASTER))
 			if (one_hand_penalty < 3)
-				return load_ammo(target, user)
+				load_ammo(target, user)
+				return TRUE
 	return ..()
 
 /obj/item/gun/projectile/handle_post_fire()
