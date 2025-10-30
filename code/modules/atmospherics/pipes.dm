@@ -1,5 +1,8 @@
 #define SOUND_ID "pipe_leakage"
-
+#define LEAK_MINOR 1
+#define LEAK_MODERATE 2
+#define LEAK_MAJOR 3
+GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 /obj/machinery/atmospherics/pipe
 
 	health_max = 200
@@ -8,6 +11,9 @@
 	var/datum/pipeline/parent
 	var/volume = 0
 	var/leaking = 0		// Do not set directly, use set_leaking(TRUE/FALSE)
+	var/leak_severity = 0
+	var/image/leak // Leak overlay image
+	var/repair_pending = 0 // Amount of health granted by repairs that haven't been applied with a welder yet
 	use_power = POWER_USE_OFF
 	uncreated_component_parts = null // No apc connection
 
@@ -43,15 +49,21 @@
 /obj/machinery/atmospherics/pipe/on_death()
 	burst()
 
-/obj/machinery/atmospherics/pipe/proc/set_leaking(new_leaking)
-	if(new_leaking && !leaking)
+/obj/machinery/atmospherics/pipe/proc/set_leaking(severity)
+	if(!leaking && severity)
 		START_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = TRUE
+		leak_severity = severity
+		leak = image('icons/atmos/color_pipe.dmi', "leak")
+		AddOverlays(leak)
 		if(parent)
 			parent.leaks |= src
 			if(parent.network)
 				parent.network.leaks |= src
-	else if (!new_leaking && leaking)
+	else if (leaking && severity)
+		leak_severity = severity
+	else if (leaking && !severity)
+		CutOverlays(leak)
 		update_sound(0)
 		STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = FALSE
@@ -114,9 +126,6 @@
 		user.unEquip(W, loc)
 		return TRUE
 
-	if (!isWrench(W))
-		return ..()
-
 	var/turf/T = src.loc
 	if (level==ATOM_LEVEL_UNDER_TILE && isturf(T) && !T.is_plating())
 		to_chat(user, SPAN_WARNING("You must remove the plating first."))
@@ -129,30 +138,97 @@
 	var/datum/gas_mixture/env_air = loc.return_air()
 
 	if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
-		to_chat(user, SPAN_WARNING("You cannot unwrench \the [src], it is too exerted due to internal pressure."))
+		to_chat(user, SPAN_WARNING("You cannot work on \the [src], it is too exerted due to internal pressure."))
 		return TRUE
 
-	playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-	to_chat(user, SPAN_NOTICE("You begin to unfasten \the [src]..."))
+	if (isWrench(W))
+		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
+		to_chat(user, SPAN_NOTICE("You begin to unfasten \the [src]..."))
 
-	if (!do_after(user, (W.toolspeed * 4) SECONDS, src, DO_REPAIR_CONSTRUCT))
-		return TRUE
+		if (!do_after(user, (W.toolspeed * 4) SECONDS, src, DO_REPAIR_CONSTRUCT))
+			return TRUE
 
-	if (clamp)
-		to_chat(user, SPAN_WARNING("You must remove \the [clamp] first."))
-		return TRUE
+		if (clamp)
+			to_chat(user, SPAN_WARNING("You must remove \the [clamp] first."))
+			return TRUE
 
-	user.visible_message(
-		SPAN_NOTICE("\The [user] unfastens \the [src]."),
-		SPAN_NOTICE("You have unfastened \the [src]."),
-		"You hear a ratchet.")
+		user.visible_message(
+			SPAN_NOTICE("\The [user] unfastens \the [src]."),
+			SPAN_NOTICE("You have unfastened \the [src]."),
+			"You hear a ratchet.")
 
-	new /obj/item/pipe(loc, src)
-	for (var/obj/machinery/meter/meter in T)
-		if (meter.target == src)
-			meter.dismantle()
-	qdel(src)
-	return TRUE
+		new /obj/item/pipe(loc, src)
+		for (var/obj/machinery/meter/meter in T)
+			if (meter.target == src)
+				meter.dismantle()
+		qdel(src)
+
+	if (isWelder(W))
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
+			return TRUE
+
+		if (clamp)
+			USE_FEEDBACK_FAILURE("You must remove \the [clamp] first.")
+			return TRUE
+
+		if (leak_severity > LEAK_MINOR && (repair_pending + get_current_health() >= get_max_health()))
+			USE_FEEDBACK_FAILURE("You must repair \the [src] with steel before welding it.")
+			return TRUE
+
+		playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
+		to_chat(user, SPAN_NOTICE("You begin to weld \the [src]..."))
+
+		if (!do_after(user, (W.toolspeed * 4) SECONDS, src, DO_REPAIR_CONSTRUCT))
+			return TRUE
+
+		set_health(health_max)
+
+		user.visible_message(
+			SPAN_NOTICE("\The [user] welds \the [src]."),
+			SPAN_NOTICE("You have welded \the [src]."),
+			"You hear a welding sound.")
+
+	if (istype(W, /obj/item/stack/material/steel || istype(W, /obj/item/stack/material/plasteel)))
+		var/obj/item/stack/material/stack = W
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
+			return TRUE
+		if ((repair_pending + get_current_health()) >= get_max_health())
+			USE_FEEDBACK_FAILURE("\The [src] already has enough new metal applied.")
+			return TRUE
+		if (!stack.can_use(1))
+			USE_FEEDBACK_STACK_NOT_ENOUGH(stack, 1, "to repair \the [src].")
+			return TRUE
+
+		user.visible_message(
+			SPAN_NOTICE("\The [user] starts applying metal sheets to \the [src]'s leak."),
+			SPAN_NOTICE("You start applying metal sheets \the [src]'s leak with metal sheets.")
+		)
+		if (!user.do_skilled(2 SECONDS, SKILL_ATMOS, src) || !user.use_sanity_check(src, W))
+			return TRUE
+
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] doesn't need repairs.")
+			return TRUE
+		if ((repair_pending + get_current_health()) >= get_max_health())
+			USE_FEEDBACK_FAILURE("\The [src] already has enough new metal applied.")
+			return TRUE
+		if (!stack.can_use(1))
+			USE_FEEDBACK_STACK_NOT_ENOUGH(stack, 1, "to repair \the [src].")
+			return TRUE
+
+		if (istype(W, /obj/item/stack/material/steel))
+			repair_pending += get_max_health() / 4
+		else if (istype(W, /obj/item/stack/material/plasteel))
+			repair_pending += get_max_health() / 2
+
+		user.visible_message(
+			SPAN_NOTICE("\The [user] patches up \the [src]'s leak."),
+			SPAN_NOTICE("You patch up \the [src]'s leak with metal sheets.")
+		)
+
+	return ..()
 
 /obj/machinery/atmospherics/get_color()
 	return pipe_color
@@ -211,7 +287,7 @@
 	if(!parent) //This should cut back on the overhead calling build_network thousands of times per cycle
 		..()
 	else if(leaking)
-		parent.mingle_with_turf(loc, volume)
+		parent.mingle_with_turf(loc, volume / get_leak_divisor())
 		var/air = parent.air && parent.air.return_pressure()
 		if(!sound_token && air)
 			update_sound(1)
@@ -231,13 +307,17 @@
 
 	if(pressure_difference > maximum_pressure)
 		burst()
+		return
 
-	else if(pressure_difference > fatigue_pressure)
-		//TODO: leak to turf, doing pfshhhhh
+	if(pressure_difference > fatigue_pressure)
+		if (prob(25))
+			damage_health(rand(2, 5), DAMAGE_BRUTE)
+			return
+
 		if(prob(5))
 			burst()
 
-	else return 1
+	return 1
 
 /obj/machinery/atmospherics/pipe/proc/burst()
 	ASSERT(parent)
@@ -1309,4 +1389,39 @@
 	else
 		underlays += icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "retracted" + icon_connect_type)
 
+/obj/machinery/atmospherics/pipe/post_health_change(health_mod, prior_health, damage_type)
+	. = ..()
+
+	if (health_current == health_max && leaking)
+		set_leaking(FALSE)
+		return
+
+	if (get_damage_percentage() >= 30)
+		set_leaking(LEAK_MINOR)
+		return
+	if (get_damage_percentage() >= 50)
+		set_leaking(LEAK_MODERATE)
+		return
+	if (get_damage_percentage() >= 70)
+		set_leaking(LEAK_MAJOR)
+		return
+
+/obj/machinery/atmospherics/pipe/proc/get_leak_divisor()
+	if (!leaking)
+		return 0
+
+	if (leak_severity == LEAK_MINOR)
+		return 20
+
+	if (leak_severity == LEAK_MODERATE)
+		return 10
+
+	if (leak_severity == LEAK_MAJOR)
+		return 5
+
+	return 0
+
 #undef SOUND_ID
+#undef LEAK_MINOR
+#undef LEAK_MODERATE
+#undef LEAK_MAJOR
