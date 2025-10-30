@@ -60,16 +60,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	if(!leaking && severity)
 		START_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = TRUE
-		leak_severity = severity
-		leak = image('icons/atmos/pipes.dmi', "leak")
-		// var/image/damage_mask = image(icon = 'icons/turf/walls.dmi', icon_state = "overlay_damage")
-		// damage_mask.plane = FLOAT_PLANE
-		// damage_mask.appearance_flags = KEEP_TOGETHER
-		// damage_mask.filters = filter (type = "alpha", icon = )
-		// AddOverlays(damage_mask)
-		if (add_overlay)
-			AddOverlays(leak)
-			visible_message(SPAN_DANGER("\The [src] emits a loud hissing as it starts leaking!"))
 		if(parent)
 			parent.leaks |= src
 			if(parent.network)
@@ -224,11 +214,20 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 		if (!do_after(user, (W.toolspeed * 4) SECONDS, src, DO_REPAIR_CONSTRUCT))
 			return TRUE
+		if (!do_after(user, (W.toolspeed * 4) SECONDS, src, DO_REPAIR_CONSTRUCT))
+			return TRUE
 
 		if (clamp)
 			to_chat(user, SPAN_WARNING("You must remove \the [clamp] first."))
 			return TRUE
+		if (clamp)
+			to_chat(user, SPAN_WARNING("You must remove \the [clamp] first."))
+			return TRUE
 
+		user.visible_message(
+			SPAN_NOTICE("\The [user] unfastens \the [src]."),
+			SPAN_NOTICE("You have unfastened \the [src]."),
+			"You hear a ratchet.")
 		user.visible_message(
 			SPAN_NOTICE("\The [user] unfastens \the [src]."),
 			SPAN_NOTICE("You have unfastened \the [src]."),
@@ -462,6 +461,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		..()
 	else if(leaking)
 		parent.mingle_with_turf(loc, volume / get_leak_divisor())
+		parent.mingle_with_turf(loc, volume / get_leak_divisor())
 		var/air = parent.air && parent.air.return_pressure()
 		if(!sound_token && air)
 			update_sound(1)
@@ -469,6 +469,29 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			update_sound(0)
 	else
 		. = PROCESS_KILL
+
+/obj/machinery/atmospherics/pipe/simple/check_pressure(pressure)
+	// Don't ask me, it happened somehow.
+	if (!isturf(loc))
+		return 1
+
+	var/datum/gas_mixture/environment = loc.return_air()
+
+	var/pressure_difference = pressure - environment.return_pressure()
+
+	if(pressure_difference > maximum_pressure)
+		burst()
+		return
+
+	if(pressure_difference > fatigue_pressure)
+		if (prob(25))
+			damage_health(rand(2, 5), DAMAGE_BRUTE)
+			return
+
+		if(prob(5))
+			burst()
+
+	return 1
 
 /obj/machinery/atmospherics/pipe/proc/burst()
 	parent?.temporarily_store_air()
