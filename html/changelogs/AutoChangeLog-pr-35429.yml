@@ -1,8 +1,0 @@
-author: reen062, Karl Johansson
-changes:
-  - {tweak: Does some behind the scenes housekeeping with railguns}
-  - {tweak: Relores railguns to be more in line with current lore}
-  - {rscadd: Adds a variety of graffiti to automatic railguns}
-  - {bugfix: Fixes a bug that could make the advanced railgun impossible to 
-      reload}
-delete-after: true
