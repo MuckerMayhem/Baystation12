@@ -1,0 +1,5 @@
+author: Banditoz
+changes:
+  - {bugfix: Fix projectile weapons not propelling you the opposite direction 
+      when fired in space.}
+delete-after: true
