@@ -2,6 +2,9 @@
 #define LEAK_MINOR 1
 #define LEAK_MODERATE 2
 #define LEAK_MAJOR 3
+#define LEAK_DAMAGE_PERCENT_MAJOR 70
+#define LEAK_DAMAGE_PERCENT_MODERATE 50
+#define LEAK_DAMAGE_PERCENT_MINOR 30
 GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 /obj/machinery/atmospherics/pipe
 
@@ -14,12 +17,16 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	var/leak_severity = 0
 	var/image/leak // Leak overlay image
 	var/repair_pending = 0 // Amount of health granted by repairs that haven't been applied with a welder yet
+	///Tape used to patch a leak. Given a health value that ticks down if pressure gets too high, removed on hitting 0
+	var/obj/item/ducttape/tape
 	use_power = POWER_USE_OFF
 	uncreated_component_parts = null // No apc connection
 
 	var/maximum_pressure = 210 * ONE_ATMOSPHERE
 	var/fatigue_pressure = 170 * ONE_ATMOSPHERE
 	var/alert_pressure = 170 * ONE_ATMOSPHERE
+	var/maximum_tape_pressure = 100 * ONE_ATMOSPHERE
+	var/last_pressure_damage_time = 0
 	var/in_stasis = 0
 		//minimum pressure before check_pressure(...) should be called
 	var/obj/machinery/clamp/clamp // Linked stasis clamp
@@ -54,8 +61,9 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		START_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = TRUE
 		leak_severity = severity
-		leak = image('icons/atmos/color_pipe.dmi', "leak")
+		leak = image('icons/atmos/pipes.dmi', "leak")
 		AddOverlays(leak)
+		visible_message(SPAN_DANGER("\The [src] emits a loud hissing as it starts leaking!"))
 		if(parent)
 			parent.leaks |= src
 			if(parent.network)
@@ -63,7 +71,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	else if (leaking && severity)
 		leak_severity = severity
 	else if (leaking && !severity)
-		CutOverlays(leak)
 		update_sound(0)
 		STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = FALSE
@@ -71,6 +78,17 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			parent.leaks -= src
 			if(parent.network)
 				parent.network.leaks -= src
+		CutOverlays(leak)
+		qdel(leak)
+
+///Check if the pipe should be leaking. Primarily for when temporary repairs are taken off of a pipe
+/// just in case the pipe somehow regained the minimum amount of health needed to not be considered "leaking".
+/obj/machinery/atmospherics/pipe/proc/check_should_leak()
+	if (leaking)
+		return TRUE
+
+	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MINOR)
+		return TRUE
 
 /obj/machinery/atmospherics/pipe/proc/update_sound(playing)
 	if(playing && !sound_token)
@@ -121,6 +139,28 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 	. = ..()
 
+/obj/machinery/atmospherics/pipe/physical_attack_hand(mob/user)
+	if (!tape)
+		return TRUE
+
+	user.visible_message(
+		SPAN_NOTICE("\The [user] starts to remove the tape from \the [src]."),
+		SPAN_NOTICE("You start to remove the tape from \the [src].")
+	)
+	if (!do_after(user, 1 SECONDS, src, DO_REPAIR_CONSTRUCT))
+		return TRUE
+
+	tape.dropInto(loc)
+	user.put_in_active_hand(tape)
+	tape = null
+	user.visible_message(
+		SPAN_NOTICE("\The [user] removes the tape from \the [src]."),
+		SPAN_NOTICE("You remove the tape from \the [src].")
+	)
+
+	if (check_should_leak())
+		set_leaking(leak_severity)
+
 /obj/machinery/atmospherics/pipe/use_tool(obj/item/W, mob/living/user, list/click_params)
 	if (istype(W, /obj/item/pipe))
 		user.unEquip(W, loc)
@@ -137,7 +177,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	var/datum/gas_mixture/int_air = return_air()
 	var/datum/gas_mixture/env_air = loc.return_air()
 
-	if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+	if ((W.istool() && int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
 		to_chat(user, SPAN_WARNING("You cannot work on \the [src], it is too exerted due to internal pressure."))
 		return TRUE
 
@@ -194,6 +234,9 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		if (!health_damaged())
 			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
 			return TRUE
+		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
+			return TRUE
 		if ((repair_pending + get_current_health()) >= get_max_health())
 			USE_FEEDBACK_FAILURE("\The [src] already has enough new metal applied.")
 			return TRUE
@@ -206,6 +249,22 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			SPAN_NOTICE("You start applying metal sheets \the [src]'s leak with metal sheets.")
 		)
 		if (!user.do_skilled(2 SECONDS, SKILL_ATMOS, src) || !user.use_sanity_check(src, W))
+			return TRUE
+
+		if (!user.skill_check(SKILL_ATMOS, SKILL_TRAINED) && leak_severity > LEAK_MINOR)
+			USE_FEEDBACK_FAILURE("You clumsily try to repair \the [src], but the pressue causes some of the metal sheets to pop back and hit you in the face!")
+			user.visible_message(
+				SPAN_DANGER("Some of the metal sheets fly back at \the [user], hitting them in the head!"),
+				SPAN_DANGER("Some of the metal sheets fly back at you, hitting you in the head!")
+			)
+			playsound(user, 'sound/weapons/punch1.ogg', 50, 1)
+			user.apply_damage(user, 5, DAMAGE_BRUTE, BP_HEAD)
+			var/list/turfs = trange(4, W.loc)
+			for (var/i = 0; i < min(rand(1, 3), stack.amount); i++)
+				if (prob(50))
+					W.dropInto(loc)
+				else
+					W.throw_at(turfs)
 			return TRUE
 
 		if (!health_damaged())
@@ -226,6 +285,67 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		user.visible_message(
 			SPAN_NOTICE("\The [user] patches up \the [src]'s leak."),
 			SPAN_NOTICE("You patch up \the [src]'s leak with metal sheets.")
+		)
+
+	if (istype(W, /obj/item/ducttape) || istype(W, /obj/item/tape_roll))
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
+			return TRUE
+
+		if (tape)
+			USE_FEEDBACK_FAILURE("\The [src] is already patched with tape.")
+			return TRUE
+
+		user.visible_message(
+			SPAN_NOTICE("\The [user] starts taping up \the [src]'s leak."),
+			SPAN_NOTICE("You start taping up \the [src]'s leak.")
+		)
+		if (!do_after(user, (W.toolspeed * 2) SECONDS, src, DO_REPAIR_CONSTRUCT))
+			return TRUE
+
+		if (!user.skill_check(SKILL_ATMOS, SKILL_TRAINED) && leak_severity > LEAK_MINOR)
+			USE_FEEDBACK_FAILURE("You clumsily try to repair \the [src], but the pressure sends the tape roll flying!")
+
+			if (prob(5))
+				playsound(user, 'sound/effects/snap.ogg', 50, 1)
+				user.equip_to_slot_or_del(new /obj/item/clothing/mask/muzzle/tape(user), slot_wear_mask)
+				user.visible_message(
+					SPAN_DANGER("Some of the tape flies back at \the [user], covering their mouth!"),
+					SPAN_DANGER("Some of the tape flies back at you, covering your mouth!")
+				)
+				return TRUE
+
+			if (prob(10))
+				playsound(user, 'sound/effects/snap.ogg', 50, 1)
+				user.equip_to_slot_or_del(new /obj/item/clothing/glasses/blindfold/tape(user), slot_glasses)
+				user.visible_message(
+					SPAN_DANGER("Some of the tape flies back at \the [user], covering their eyes!"),
+					SPAN_DANGER("Some of the tape flies back at you, covering your eyes!")
+				)
+				return TRUE
+
+			user.unequip_item(W)
+			W.throw_at(pick(trange(4, W.loc)))
+
+			user.apply_damage(user, 1, DAMAGE_BRUTE, BP_HEAD)
+			return TRUE
+
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] doesn't need repairs.")
+			return TRUE
+
+		set_leaking(FALSE)
+		if (istype(W, /obj/item/ducttape))
+			user.drop_from_inventory(W)
+			qdel(W)
+		tape = new /obj/item/ducttape(src)
+		forceMove(tape, src)// is this making the pipe delete?
+		tape.set_max_health(50)
+		tape.set_health(50)
+
+		user.visible_message(
+			SPAN_NOTICE("\The [user] tapes up \the [src]'s leak."),
+			SPAN_NOTICE("You tape up \the [src]'s leak.")
 		)
 
 	return ..()
@@ -310,12 +430,22 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		return
 
 	if(pressure_difference > fatigue_pressure)
-		if (prob(25))
-			damage_health(rand(2, 5), DAMAGE_BRUTE)
-			return
+		if (tape && pressure_difference > maximum_tape_pressure)
+			var/damage = rand(1, 2) * leak_severity
+			if (get_current_health() - damage < 0)
+				visible_message(SPAN_DANGER("The tape on \the [src] tears apart from the pressure!"))
+				playsound(loc, 'sound/effects/wrap_tear.ogg', 65, 1)
+				qdel(tape)
+				return 1
+			tape.damage_health(damage)
+			if (prob(25))
+				visible_message(SPAN_WARNING("The tape on \the [src] loosens slightly due to the pressure."))
 
-		if(prob(5))
-			burst()
+		if (prob(2) && last_pressure_damage_time < world.time)
+			last_pressure_damage_time = world.time + 10 SECONDS
+			damage_health(rand(5, 10), DAMAGE_BRUTE)
+			visible_message(SPAN_WARNING("\The [src] groans under the pressure, taking damage."))
+			return 1
 
 	return 1
 
@@ -1392,18 +1522,21 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 /obj/machinery/atmospherics/pipe/post_health_change(health_mod, prior_health, damage_type)
 	. = ..()
 
-	if (health_current == health_max && leaking)
+	if ((health_current == health_max) && leaking)
 		set_leaking(FALSE)
 		return
 
-	if (get_damage_percentage() >= 30)
-		set_leaking(LEAK_MINOR)
+	if (tape)
 		return
-	if (get_damage_percentage() >= 50)
+
+	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MAJOR)
+		set_leaking(LEAK_MAJOR)
+		return
+	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MODERATE)
 		set_leaking(LEAK_MODERATE)
 		return
-	if (get_damage_percentage() >= 70)
-		set_leaking(LEAK_MAJOR)
+	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MINOR)
+		set_leaking(LEAK_MINOR)
 		return
 
 /obj/machinery/atmospherics/pipe/proc/get_leak_divisor()
@@ -1425,3 +1558,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 #undef LEAK_MINOR
 #undef LEAK_MODERATE
 #undef LEAK_MAJOR
+#undef LEAK_DAMAGE_PERCENT_MAJOR
+#undef LEAK_DAMAGE_PERCENT_MODERATE
+#undef LEAK_DAMAGE_PERCENT_MINOR

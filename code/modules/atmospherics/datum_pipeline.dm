@@ -9,6 +9,7 @@
 	var/list/leaks = list()
 
 	var/maximum_pressure = 0
+	var/fatigue_pressure = 0
 
 /datum/pipeline/New()
 	START_PROCESSING(SSprocessing, src)
@@ -30,7 +31,7 @@
 /datum/pipeline/Process()//This use to be called called from the pipe networks
 	//Check to see if pressure is within acceptable limits
 	var/pressure = air.return_pressure()
-	if(pressure > maximum_pressure)
+	if(pressure > fatigue_pressure)
 		for(var/obj/machinery/atmospherics/pipe/member in members)
 			if(!member.check_pressure(pressure))
 				members.Remove(member)
@@ -53,6 +54,7 @@
 	var/volume = base.volume
 	base.parent = src
 	maximum_pressure = base.maximum_pressure
+	fatigue_pressure = base.fatigue_pressure
 
 	if(base.air_temporary)
 		air = base.air_temporary
