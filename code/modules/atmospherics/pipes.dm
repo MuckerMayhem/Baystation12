@@ -2,9 +2,9 @@
 #define LEAK_MINOR 1
 #define LEAK_MODERATE 2
 #define LEAK_MAJOR 3
-#define LEAK_DAMAGE_PERCENT_MAJOR 70
-#define LEAK_DAMAGE_PERCENT_MODERATE 50
-#define LEAK_DAMAGE_PERCENT_MINOR 30
+#define LEAK_DAMAGE_MAJOR 60
+#define LEAK_DAMAGE_MODERATE 45
+#define LEAK_DAMAGE_MINOR 15
 GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 /obj/machinery/atmospherics/pipe
 
@@ -62,6 +62,11 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		leaking = TRUE
 		leak_severity = severity
 		leak = image('icons/atmos/pipes.dmi', "leak")
+		// var/image/damage_mask = image(icon = 'icons/turf/walls.dmi', icon_state = "overlay_damage")
+		// damage_mask.plane = FLOAT_PLANE
+		// damage_mask.appearance_flags = KEEP_TOGETHER
+		// damage_mask.filters = filter (type = "alpha", icon = )
+		// AddOverlays(damage_mask)
 		AddOverlays(leak)
 		visible_message(SPAN_DANGER("\The [src] emits a loud hissing as it starts leaking!"))
 		if(parent)
@@ -87,7 +92,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	if (leaking)
 		return TRUE
 
-	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MINOR)
+	if (get_damage_percentage() >= LEAK_DAMAGE_MINOR)
 		return TRUE
 
 /obj/machinery/atmospherics/pipe/proc/update_sound(playing)
@@ -204,6 +209,9 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		qdel(src)
 
 	if (isWelder(W))
+		var/obj/item/weldingtool/welder = W
+		if (!welder.can_use(1, user))
+			return TRUE
 		if (!health_damaged())
 			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
 			return TRUE
@@ -223,11 +231,14 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			return TRUE
 
 		set_health(health_max)
+		qdel(tape)
+		welder.remove_fuel(1, user)
+		playsound(loc, 'sound/items/Welder.ogg', 50, 1)
 
 		user.visible_message(
 			SPAN_NOTICE("\The [user] welds \the [src]."),
 			SPAN_NOTICE("You have welded \the [src]."),
-			"You hear a welding sound.")
+			"You hear welding.")
 
 	if (istype(W, /obj/item/stack/material/steel || istype(W, /obj/item/stack/material/plasteel)))
 		var/obj/item/stack/material/stack = W
@@ -252,7 +263,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			return TRUE
 
 		if (!user.skill_check(SKILL_ATMOS, SKILL_TRAINED) && leak_severity > LEAK_MINOR)
-			USE_FEEDBACK_FAILURE("You clumsily try to repair \the [src], but the pressue causes some of the metal sheets to pop back and hit you in the face!")
+			USE_FEEDBACK_FAILURE("You clumsily try to repair \the [src], but the pressure causes some of the metal sheets to pop back and hit you in the face!")
 			user.visible_message(
 				SPAN_DANGER("Some of the metal sheets fly back at \the [user], hitting them in the head!"),
 				SPAN_DANGER("Some of the metal sheets fly back at you, hitting you in the head!")
@@ -1528,13 +1539,13 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	if (tape)
 		return
 
-	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MAJOR)
+	if (get_damage_percentage() >= LEAK_DAMAGE_MAJOR)
 		set_leaking(LEAK_MAJOR)
 		return
-	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MODERATE)
+	if (get_damage_percentage() >= LEAK_DAMAGE_MODERATE)
 		set_leaking(LEAK_MODERATE)
 		return
-	if (get_damage_percentage() >= LEAK_DAMAGE_PERCENT_MINOR)
+	if (get_damage_percentage() >= LEAK_DAMAGE_MINOR)
 		set_leaking(LEAK_MINOR)
 		return
 
@@ -1557,6 +1568,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 #undef LEAK_MINOR
 #undef LEAK_MODERATE
 #undef LEAK_MAJOR
-#undef LEAK_DAMAGE_PERCENT_MAJOR
-#undef LEAK_DAMAGE_PERCENT_MODERATE
-#undef LEAK_DAMAGE_PERCENT_MINOR
+#undef LEAK_DAMAGE_MAJOR
+#undef LEAK_DAMAGE_MODERATE
+#undef LEAK_DAMAGE_MINOR
