@@ -105,8 +105,35 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	return null
 
 /obj/machinery/atmospherics/pipe/proc/check_pressure(pressure)
-	//Return 1 if parent should continue checking other pipes
-	//Return null if parent should stop checking other pipes. Recall: qdel(src) will by default return null
+	// Don't ask me, it happened somehow.
+	if (!isturf(loc))
+		return 1
+
+	var/datum/gas_mixture/environment = loc.return_air()
+
+	var/pressure_difference = pressure - environment.return_pressure()
+
+	if(pressure_difference > maximum_pressure)
+		burst()
+		return
+
+	if(pressure_difference > fatigue_pressure)
+		if (tape && pressure_difference > maximum_tape_pressure)
+			var/damage = rand(1, 2) * leak_severity
+			if (get_current_health() - damage < 0)
+				visible_message(SPAN_DANGER("The tape on \the [src] tears apart from the pressure!"))
+				playsound(loc, 'sound/effects/wrap_tear.ogg', 65, 1)
+				qdel(tape)
+				return 1
+			tape.damage_health(damage)
+			if (prob(25))
+				visible_message(SPAN_WARNING("The tape on \the [src] loosens slightly due to the pressure."))
+
+		if (prob(2) && last_pressure_damage_time < world.time)
+			last_pressure_damage_time = world.time + 10 SECONDS
+			damage_health(rand(5, 10), DAMAGE_BRUTE)
+			visible_message(SPAN_WARNING("\The [src] groans under the pressure, taking damage."))
+			return 1
 
 	return 1
 
@@ -428,39 +455,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			update_sound(0)
 	else
 		. = PROCESS_KILL
-
-/obj/machinery/atmospherics/pipe/simple/check_pressure(pressure)
-	// Don't ask me, it happened somehow.
-	if (!isturf(loc))
-		return 1
-
-	var/datum/gas_mixture/environment = loc.return_air()
-
-	var/pressure_difference = pressure - environment.return_pressure()
-
-	if(pressure_difference > maximum_pressure)
-		burst()
-		return
-
-	if(pressure_difference > fatigue_pressure)
-		if (tape && pressure_difference > maximum_tape_pressure)
-			var/damage = rand(1, 2) * leak_severity
-			if (get_current_health() - damage < 0)
-				visible_message(SPAN_DANGER("The tape on \the [src] tears apart from the pressure!"))
-				playsound(loc, 'sound/effects/wrap_tear.ogg', 65, 1)
-				qdel(tape)
-				return 1
-			tape.damage_health(damage)
-			if (prob(25))
-				visible_message(SPAN_WARNING("The tape on \the [src] loosens slightly due to the pressure."))
-
-		if (prob(2) && last_pressure_damage_time < world.time)
-			last_pressure_damage_time = world.time + 10 SECONDS
-			damage_health(rand(5, 10), DAMAGE_BRUTE)
-			visible_message(SPAN_WARNING("\The [src] groans under the pressure, taking damage."))
-			return 1
-
-	return 1
 
 /obj/machinery/atmospherics/pipe/proc/burst()
 	parent?.temporarily_store_air()
