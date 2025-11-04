@@ -240,6 +240,8 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			SPAN_NOTICE("You have welded \the [src]."),
 			"You hear welding.")
 
+		return TRUE
+
 	if (istype(W, /obj/item/stack/material/steel || istype(W, /obj/item/stack/material/plasteel)))
 		var/obj/item/stack/material/stack = W
 		if (!health_damaged())
