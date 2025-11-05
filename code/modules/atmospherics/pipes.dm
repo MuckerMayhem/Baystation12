@@ -106,7 +106,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 /obj/machinery/atmospherics/pipe/proc/check_pressure(pressure)
 	// Don't ask me, it happened somehow.
-	if (!isturf(loc))
+	if (!isturf(loc) || istype(loc, /turf/simulated/wall))
 		return 1
 
 	var/datum/gas_mixture/environment = loc.return_air()
@@ -563,7 +563,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	level = ATOM_LEVEL_OVER_TILE
 
 /obj/machinery/atmospherics/pipe/simple/visible/scrubbers
-	name = "Scrubbers pipe"
+	name = "scrubbers pipe"
 	desc = "A one meter section of scrubbers pipe."
 	icon_state = "intact-scrubbers"
 	connect_types = CONNECT_TYPE_SCRUBBER
@@ -573,7 +573,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	hidden_layer = SCRUBBERS_LAYER
 
 /obj/machinery/atmospherics/pipe/simple/visible/supply
-	name = "Air supply pipe"
+	name = "air supply pipe"
 	desc = "A one meter section of supply pipe."
 	icon_state = "intact-supply"
 	connect_types = CONNECT_TYPE_SUPPLY
@@ -601,7 +601,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	color = PIPE_COLOR_BLUE
 
 /obj/machinery/atmospherics/pipe/simple/visible/fuel
-	name = "Fuel pipe"
+	name = "fuel pipe"
 	color = PIPE_COLOR_ORANGE
 	maximum_pressure = 420*ONE_ATMOSPHERE
 	fatigue_pressure = 350*ONE_ATMOSPHERE
@@ -613,7 +613,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	alpha = 128		//set for the benefit of mapping - this is reset to opaque when the pipe is spawned in game
 
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers
-	name = "Scrubbers pipe"
+	name = "fcrubbers pipe"
 	desc = "A one meter section of scrubbers pipe."
 	icon_state = "intact-scrubbers"
 	connect_types = CONNECT_TYPE_SCRUBBER
@@ -623,7 +623,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	hidden_layer = SCRUBBERS_LAYER
 
 /obj/machinery/atmospherics/pipe/simple/hidden/supply
-	name = "Air supply pipe"
+	name = "air supply pipe"
 	desc = "A one meter section of supply pipe."
 	icon_state = "intact-supply"
 	connect_types = CONNECT_TYPE_SUPPLY
@@ -651,7 +651,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	color = PIPE_COLOR_BLUE
 
 /obj/machinery/atmospherics/pipe/simple/hidden/fuel
-	name = "Fuel pipe"
+	name = "fuel pipe"
 	color = PIPE_COLOR_ORANGE
 	maximum_pressure = 420*ONE_ATMOSPHERE
 	fatigue_pressure = 350*ONE_ATMOSPHERE
@@ -831,7 +831,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	level = ATOM_LEVEL_OVER_TILE
 
 /obj/machinery/atmospherics/pipe/manifold/visible/scrubbers
-	name="Scrubbers pipe manifold"
+	name="scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes."
 	icon_state = "map-scrubbers"
 	connect_types = CONNECT_TYPE_SCRUBBER
@@ -841,7 +841,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	hidden_layer = SCRUBBERS_LAYER
 
 /obj/machinery/atmospherics/pipe/manifold/visible/supply
-	name="Air supply pipe manifold"
+	name="air supply pipe manifold"
 	desc = "A manifold composed of supply pipes."
 	icon_state = "map-supply"
 	connect_types = CONNECT_TYPE_SUPPLY
@@ -869,7 +869,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	color = PIPE_COLOR_BLUE
 
 /obj/machinery/atmospherics/pipe/manifold/visible/fuel
-	name = "Fuel pipe manifold"
+	name = "fuel pipe manifold"
 	color = PIPE_COLOR_ORANGE
 	maximum_pressure = 420*ONE_ATMOSPHERE
 	fatigue_pressure = 350*ONE_ATMOSPHERE
@@ -881,7 +881,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	alpha = 128		//set for the benefit of mapping - this is reset to opaque when the pipe is spawned in game
 
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers
-	name="Scrubbers pipe manifold"
+	name="scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes."
 	icon_state = "map-scrubbers"
 	connect_types = CONNECT_TYPE_SCRUBBER
@@ -891,7 +891,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	hidden_layer = SCRUBBERS_LAYER
 
 /obj/machinery/atmospherics/pipe/manifold/hidden/supply
-	name="Air supply pipe manifold"
+	name="air supply pipe manifold"
 	desc = "A manifold composed of supply pipes."
 	icon_state = "map-supply"
 	connect_types = CONNECT_TYPE_SUPPLY
@@ -919,7 +919,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	color = PIPE_COLOR_BLUE
 
 /obj/machinery/atmospherics/pipe/manifold/hidden/fuel
-	name = "Fuel pipe manifold"
+	name = "fuel pipe manifold"
 	color = PIPE_COLOR_ORANGE
 	maximum_pressure = 420*ONE_ATMOSPHERE
 	fatigue_pressure = 350*ONE_ATMOSPHERE
@@ -1362,7 +1362,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	build_icon_state = "uvent"
 
 /obj/machinery/atmospherics/pipe/vent/high_volume
-	name = "Larger vent"
+	name = "larger vent"
 	volume = 1000
 
 /obj/machinery/atmospherics/pipe/vent/Process()
@@ -1425,7 +1425,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 
 /obj/machinery/atmospherics/pipe/simple/visible/universal
-	name="Universal pipe adapter"
+	name="universal pipe adapter"
 	desc = "An adapter for regular, supply, scrubbers, and fuel pipes."
 	connect_types = CONNECT_TYPE_REGULAR|CONNECT_TYPE_SUPPLY|CONNECT_TYPE_SCRUBBER|CONNECT_TYPE_FUEL|CONNECT_TYPE_HE
 	icon_state = "map_universal"
@@ -1461,7 +1461,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 
 /obj/machinery/atmospherics/pipe/simple/hidden/universal
-	name="Universal pipe adapter"
+	name="universal pipe adapter"
 	desc = "An adapter for regular, supply and scrubbers pipes."
 	connect_types = CONNECT_TYPE_REGULAR|CONNECT_TYPE_SUPPLY|CONNECT_TYPE_SCRUBBER|CONNECT_TYPE_FUEL|CONNECT_TYPE_HE
 	icon_state = "map_universal"
