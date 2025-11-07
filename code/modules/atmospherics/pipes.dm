@@ -22,7 +22,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	use_power = POWER_USE_OFF
 	uncreated_component_parts = null // No apc connection
 
-	var/maximum_pressure = 210 * ONE_ATMOSPHERE
+	var/maximum_pressure = 280 * ONE_ATMOSPHERE
 	var/fatigue_pressure = 170 * ONE_ATMOSPHERE
 	var/alert_pressure = 170 * ONE_ATMOSPHERE
 	var/maximum_tape_pressure = 100 * ONE_ATMOSPHERE
@@ -56,7 +56,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 /obj/machinery/atmospherics/pipe/on_death()
 	burst()
 
-/obj/machinery/atmospherics/pipe/proc/set_leaking(severity)
+/obj/machinery/atmospherics/pipe/proc/set_leaking(severity, add_overlay = TRUE)
 	if(!leaking && severity)
 		START_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 		leaking = TRUE
@@ -67,8 +67,9 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		// damage_mask.appearance_flags = KEEP_TOGETHER
 		// damage_mask.filters = filter (type = "alpha", icon = )
 		// AddOverlays(damage_mask)
-		AddOverlays(leak)
-		visible_message(SPAN_DANGER("\The [src] emits a loud hissing as it starts leaking!"))
+		if (add_overlay)
+			AddOverlays(leak)
+			visible_message(SPAN_DANGER("\The [src] emits a loud hissing as it starts leaking!"))
 		if(parent)
 			parent.leaks |= src
 			if(parent.network)
@@ -214,6 +215,10 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		return TRUE
 
 	if (isWrench(W))
+		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
+			return TRUE
+
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
 		to_chat(user, SPAN_NOTICE("You begin to unfasten \the [src]..."))
 
@@ -241,6 +246,10 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 			return TRUE
 		if (!health_damaged())
 			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
+			return TRUE
+
+		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
 			return TRUE
 
 		if (clamp)
@@ -274,9 +283,6 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 		if (!health_damaged())
 			USE_FEEDBACK_FAILURE("\The [src] does not need repairs.")
 			return TRUE
-		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
-			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
-			return TRUE
 		if ((repair_pending + get_current_health()) >= get_max_health())
 			USE_FEEDBACK_FAILURE("\The [src] already has enough new metal applied.")
 			return TRUE
@@ -307,6 +313,10 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 					W.throw_at(turfs)
 			return TRUE
 
+		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
+			return TRUE
+
 		if (!health_damaged())
 			USE_FEEDBACK_FAILURE("\The [src] doesn't need repairs.")
 			return TRUE
@@ -334,6 +344,10 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 
 		if (tape)
 			USE_FEEDBACK_FAILURE("\The [src] is already patched with tape.")
+			return TRUE
+
+		if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+			USE_FEEDBACK_FAILURE("You cannot work on \the [src], it is too exerted due to internal pressure.")
 			return TRUE
 
 		user.visible_message(
