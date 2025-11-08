@@ -627,7 +627,7 @@ GLOBAL_VAR_AS(leak_divisor, 20) // Divisor for minor leaks
 	alpha = 128		//set for the benefit of mapping - this is reset to opaque when the pipe is spawned in game
 
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers
-	name = "fcrubbers pipe"
+	name = "scrubbers pipe"
 	desc = "A one meter section of scrubbers pipe."
 	icon_state = "intact-scrubbers"
 	connect_types = CONNECT_TYPE_SCRUBBER
