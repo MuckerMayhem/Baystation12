@@ -3444,6 +3444,11 @@
 	id_tag = "engine_exterior";
 	name = "Engine Airlock Exterior"
 	},
+/obj/structure/cable/cyan{
+	d1 = 4;
+	d2 = 8;
+	icon_state = "4-8"
+	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
 "gX" = (
@@ -3706,6 +3711,12 @@
 	},
 /turf/simulated/floor/tiled,
 /area/engineering/engineering_bay)
+"hJ" = (
+/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
+	dir = 7
+	},
+/turf/simulated/wall/r_wall/prepainted,
+/area/engineering/atmos)
 "hK" = (
 /turf/simulated/floor/tiled/steel_grid,
 /area/engineering/engineering_bay)
@@ -5003,25 +5014,24 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
 "lb" = (
-/obj/structure/closet/radiation,
 /obj/floor_decal/industrial/warning{
 	dir = 5
 	},
 /obj/floor_decal/industrial/outline/yellow,
-/obj/item/clothing/glasses/meson,
-/obj/item/clothing/glasses/meson,
 /obj/machinery/light/small{
 	dir = 1
-	},
-/obj/machinery/rotating_alarm/supermatter,
-/obj/machinery/power/apc/super/critical{
-	name = "north bump";
-	dir = 4;
-	pixel_x = 24
 	},
 /obj/structure/cable/cyan{
 	d2 = 2;
 	icon_state = "0-2"
+	},
+/obj/machinery/rotating_alarm/supermatter{
+	dir = 8
+	},
+/obj/machinery/power/apc/super/critical{
+	dir = 1;
+	name = "north bump";
+	pixel_y = 24
 	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
@@ -5365,6 +5375,11 @@
 	d2 = 8;
 	icon_state = "1-8"
 	},
+/obj/structure/cable/cyan{
+	d1 = 4;
+	d2 = 8;
+	icon_state = "4-8"
+	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
 "lT" = (
@@ -5373,6 +5388,11 @@
 	master_tag = "engine_controller";
 	pixel_x = -23;
 	pixel_y = 23
+	},
+/obj/structure/cable/cyan{
+	d1 = 2;
+	d2 = 8;
+	icon_state = "2-8"
 	},
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
@@ -5642,6 +5662,11 @@
 /obj/floor_decal/industrial/warning/corner{
 	dir = 8;
 	icon_state = "warningcorner"
+	},
+/obj/structure/cable/cyan{
+	d1 = 1;
+	d2 = 2;
+	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
@@ -5995,7 +6020,7 @@
 /area/engineering/engine_monitoring)
 "nF" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/yellow{
-	dir = 4
+	dir = 1
 	},
 /turf/simulated/wall/r_wall/prepainted,
 /area/engineering/atmos)
@@ -8154,12 +8179,6 @@
 	},
 /turf/simulated/floor/tiled/dark,
 /area/engineering/bluespace)
-"tn" = (
-/obj/machinery/atmospherics/pipe/manifold/visible/yellow{
-	dir = 8
-	},
-/turf/simulated/wall/r_wall/prepainted,
-/area/engineering/atmos)
 "to" = (
 /obj/structure/window/reinforced,
 /obj/machinery/portable_atmospherics/canister/carbon_dioxide,
@@ -8944,8 +8963,8 @@
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
 "vq" = (
-/obj/machinery/atmospherics/unary/vent_scrubber/on{
-	dir = 8
+/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
+	dir = 4
 	},
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
@@ -8956,6 +8975,9 @@
 /obj/floor_decal/industrial/warning{
 	dir = 4;
 	icon_state = "warning"
+	},
+/obj/machinery/atmospherics/unary/vent_scrubber/on{
+	dir = 8
 	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
@@ -9136,28 +9158,35 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
 "we" = (
-/obj/machinery/atmospherics/pipe/simple/visible/green,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 5
 	},
 /obj/machinery/light{
 	dir = 8
 	},
+/obj/machinery/atmospherics/pipe/manifold/visible/green{
+	dir = 8
+	},
+/obj/machinery/meter,
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
 "wf" = (
-/obj/machinery/atmospherics/unary/vent_pump/on{
+/obj/machinery/atmospherics/binary/pump{
 	dir = 8
+	},
+/obj/machinery/atmospherics/pipe/simple/hidden/supply{
+	dir = 4
 	},
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/engine_room)
 "wg" = (
-/obj/machinery/atmospherics/pipe/simple/visible/green{
-	dir = 5
-	},
 /obj/floor_decal/industrial/warning{
 	dir = 4;
 	icon_state = "warning"
+	},
+/obj/machinery/atmospherics/pipe/manifold/visible/green,
+/obj/machinery/atmospherics/unary/vent_pump/on{
+	dir = 8
 	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/engine_room)
@@ -9291,12 +9320,6 @@
 	},
 /turf/simulated/floor/tiled,
 /area/engineering/engineering_bay)
-"wB" = (
-/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
-	dir = 7
-	},
-/turf/simulated/wall/r_wall/prepainted,
-/area/engineering/atmos)
 "wC" = (
 /obj/structure/cable/cyan{
 	d1 = 1;
@@ -12722,12 +12745,6 @@
 	},
 /turf/simulated/wall/r_wall/hull,
 /area/space)
-"FY" = (
-/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
-	dir = 9
-	},
-/turf/simulated/wall/r_wall/prepainted,
-/area/engineering/atmos)
 "Gb" = (
 /obj/shuttle_landmark/torch/deck3/guppy{
 	name = "2nd Deck, Fore"
@@ -12970,11 +12987,24 @@
 /obj/machinery/rotating_alarm/supermatter{
 	dir = 8
 	},
-/turf/simulated/floor/tiled,
+/obj/structure/closet/radiation,
+/obj/item/clothing/glasses/meson,
+/obj/item/clothing/glasses/meson,
+/obj/floor_decal/industrial/outline/yellow,
+/turf/simulated/floor/tiled/steel_grid,
 /area/engineering/engine_monitoring)
 "GM" = (
 /turf/simulated/floor/tiled/techfloor,
 /area/maintenance/seconddeck/aftstarboard)
+"GO" = (
+/obj/machinery/door/firedoor,
+/obj/wallframe_spawn/reinforced_phoron,
+/obj/machinery/meter,
+/obj/machinery/atmospherics/pipe/manifold/hidden/yellow{
+	dir = 1
+	},
+/turf/simulated/floor/plating,
+/area/engineering/atmos)
 "GQ" = (
 /obj/machinery/atmospherics/pipe/simple/visible/green,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
@@ -13568,12 +13598,6 @@
 "IE" = (
 /turf/simulated/wall/r_wall/hull,
 /area/maintenance/seconddeck/aftstarboard)
-"IG" = (
-/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
-	dir = 1
-	},
-/turf/simulated/wall/r_wall/prepainted,
-/area/engineering/atmos)
 "II" = (
 /obj/machinery/atmospherics/pipe/simple/visible/green,
 /obj/floor_decal/techfloor{
@@ -14005,15 +14029,6 @@
 "JY" = (
 /turf/simulated/wall/ocp_wall,
 /area/engineering/fuelbay)
-"JZ" = (
-/obj/machinery/door/firedoor,
-/obj/wallframe_spawn/reinforced_phoron,
-/obj/machinery/meter,
-/obj/machinery/atmospherics/pipe/manifold/hidden/yellow{
-	dir = 1
-	},
-/turf/simulated/floor/plating,
-/area/engineering/atmos)
 "Ka" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 4
@@ -14758,13 +14773,6 @@
 	map_airless = 1
 	},
 /area/engineering/prototype/engine)
-"Nc" = (
-/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
-	dir = 1
-	},
-/obj/machinery/meter,
-/turf/simulated/wall/r_wall/prepainted,
-/area/engineering/atmos)
 "Nd" = (
 /obj/machinery/power/terminal{
 	dir = 1
@@ -16796,6 +16804,12 @@
 /obj/structure/sign/warning/vacuum,
 /turf/simulated/wall/r_wall/prepainted,
 /area/engineering/engine_room)
+"Tq" = (
+/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
+	dir = 4
+	},
+/turf/simulated/wall/r_wall/prepainted,
+/area/engineering/atmos)
 "Ts" = (
 /obj/structure/sign/warning/secure_area{
 	dir = 1;
@@ -18300,6 +18314,12 @@
 	},
 /turf/space,
 /area/space)
+"YN" = (
+/obj/machinery/atmospherics/pipe/manifold/visible/yellow{
+	dir = 8
+	},
+/turf/simulated/wall/r_wall/prepainted,
+/area/engineering/atmos)
 "YQ" = (
 /turf/simulated/wall/prepainted,
 /area/engineering/wastetank)
@@ -18511,6 +18531,13 @@
 "Zu" = (
 /turf/simulated/wall/prepainted,
 /area/storage/tech)
+"Zy" = (
+/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
+	dir = 1
+	},
+/obj/machinery/meter,
+/turf/simulated/wall/r_wall/prepainted,
+/area/engineering/atmos)
 "ZB" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 4;
@@ -18585,6 +18612,12 @@
 	},
 /turf/simulated/floor/greengrid,
 /area/synth/borg_upload)
+"ZR" = (
+/obj/machinery/atmospherics/pipe/simple/hidden/yellow{
+	dir = 9
+	},
+/turf/simulated/wall/r_wall/prepainted,
+/area/engineering/atmos)
 "ZS" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 4
@@ -43575,7 +43608,7 @@ Qb
 vD
 WG
 Qb
-JZ
+GO
 OU
 Qb
 uD
@@ -43778,7 +43811,7 @@ uE
 sZ
 On
 Pn
-nF
+Tq
 yN
 zx
 Aq
@@ -43974,13 +44007,13 @@ jL
 pZ
 so
 KP
-tn
-wB
-Nc
-IG
-IG
-IG
-FY
+YN
+hJ
+Zy
+nF
+nF
+nF
+ZR
 sZ
 sZ
 Qu
