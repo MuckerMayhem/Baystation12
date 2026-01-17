@@ -189,3 +189,33 @@
 
 /obj/overmap/visitable/ship/proc/get_speed_sensor_increase()
 	return min(get_speed() * 1000, 50) //Engines should never increase sensor visibility by more than 50.
+
+/obj/overmap/visitable/ship/proc/can_jump()
+	. = FALSE
+	for (var/obj/machinery/bluespacedrive/bsd in SSmachines.machinery)
+		if (bsd.z in map_z)
+			. = TRUE
+			break
+
+	if(x <= 1 || x >= GLOB.using_map.overmap_size)
+		return FALSE
+	if(y <= 1 || y >= GLOB.using_map.overmap_size)
+		return FALSE
+
+	return .
+
+/obj/overmap/visitable/ship/proc/start_microjump(x, y, skip_jump_check = FALSE)
+	if (!skip_jump_check && !can_jump())
+		return FALSE
+
+	var/turf/destination = locate(x, y, z)
+	new /obj/ftl (get_turf(destination))
+	new /obj/ftl (get_turf(src))
+	addtimer(new Callback(src, PROC_REF(finish_microjump), x, y), 2 SECONDS)
+	animate(src, time = 0.5 SECONDS)
+	animate(alpha = 0, time = 0.5 SECONDS)
+
+/obj/overmap/visitable/ship/proc/finish_microjump(at_x, at_y)
+	x = at_x
+	y = at_y
+	animate(src, alpha = 255, time = 0.5 SECONDS)
