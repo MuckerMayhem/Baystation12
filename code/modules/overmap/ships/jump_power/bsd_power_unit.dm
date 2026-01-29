@@ -1,3 +1,7 @@
+#define POWERBANK_OFF FLAG(0)
+#define POWERBANK_CHARGING FLAG(1)
+#define POWERBANK_DISCHARGING FLAG(2)
+
 /obj/machinery/power/bsd_powerbank
 	name = "bluespace drive powerbank"
 	desc = "A heavy duty power bank designed to provide immense amounts of energy to a bluespace drive unit."
@@ -14,11 +18,11 @@
 	uncreated_component_parts = list(
 		/obj/item/stock_parts/smes_coil/advanced = 1,
 		/obj/item/stock_parts/smes_coil/super_capacity = 1)
-	var/max_energy = 0                  // Maximal stored energy. In joules. Depends on the type of used SMES coil when constructing this generator.
+	var/max_energy = 1 GIGAWATTS                  // Maximal stored energy. In joules. Depends on the type of used SMES coil when constructing this generator.
 	var/current_energy = 0              // Current stored energy.
 	var/field_radius = 1                // Current field radius.
 	var/target_radius = 1               // Desired field radius.
-	var/running = SHIELD_OFF            // Whether the generator is enabled or not.
+	var/running = POWERBANK_OFF            // Whether the generator is enabled or not.
 	var/input_cap = 1 MEGAWATTS         // Currently set input limit. Set to 0 to disable limits altogether. The bank will try to input this value per tick at most
 	var/upkeep_power_usage = 0          // Upkeep power usage last tick.
 	var/upkeep_multiplier = 1           // Multiplier of upkeep values.
@@ -29,6 +33,7 @@
 	var/input_cut = FALSE                   // Whether the input wire is cut.
 	var/mode_changes_locked = FALSE         // Whether the control wire is cut, locking out changes.
 	var/ai_control_disabled = FALSE         // Whether the AI control is disabled.
+	var/input_cap = 10 MEGAWATTS        // Maximal input capacity.
 
 	var/required_power_modifier = 1     // Modifier to the amount of power required to perform a job. Changes with upgrades.
 
@@ -43,10 +48,6 @@
 
 /obj/machinery/power/bsd_powerbank/RefreshParts()
 	max_energy = 0
-	full_shield_strength = 0
-	for(var/obj/item/stock_parts/smes_coil/S in component_parts)
-		full_shield_strength += (S.ChargeCapacity / CELLRATE) * 5
-	max_energy = full_shield_strength * 20
 	current_energy = clamp(current_energy, 0, max_energy)
 
 	..()
@@ -97,3 +98,18 @@ var/global/const/BSD_POWERBANK_WIRE_NOTHING = 16		// A blank wire that doesn't h
 	switch(index)
 		if(BSD_POWERBANK_WIRE_HACK)
 			S.hacked = TRUE
+
+/obj/machinery/power/bsd_powerbank/proc/input_power(percentage)
+	var/to_input = target_load * (percentage/100)
+	to_input = clamp(to_input, 0, target_load)
+	input_available = 0
+	if(percentage == 100)
+		inputting = 2
+	else if(percentage)
+		inputting = 1
+	// else inputting = 0, as set in process()
+
+	for(var/obj/item/stock_parts/power/terminal/term in power_components)
+		var/inputted = term.use_power_oneoff(src, to_input, power_channel)
+		add_charge(inputted)
+		input_available += inputted
