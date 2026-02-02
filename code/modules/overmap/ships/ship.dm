@@ -226,6 +226,6 @@
 	animate(alpha = 0, time = 0.5 SECONDS)
 
 /obj/overmap/visitable/ship/proc/finish_microjump(at_x, at_y)
-	x = at_x
-	y = at_y
+	forceMove(locate(at_x, at_y, z))
 	animate(src, alpha = 255, time = 0.5 SECONDS)
+	bsd.current_cooldown = world.time + bsd.cooldown_length

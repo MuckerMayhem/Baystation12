@@ -39,6 +39,13 @@
 	var/list/obj/machinery/power/capacitor/connected_capacitors = list()
 	var/current_charge = 0
 	var/max_charge = 50 MEGAWATTS
+	var/required_charge_per_second = 4 MEGAWATTS
+	var/current_charge_per_second = 0
+	var/current_charge_window = 0
+	var/cooldown_length = 1 MINUTE
+	var/current_cooldown = 0
+	var/instability_score = 0
+	var/max_instability = 100
 	var/obj/overmap/visitable/ship/ship
 
 
@@ -182,7 +189,16 @@
 	// Called by connected capacitors to add charge to the drive
 	// amount is in watts
 	// For now, we just create a flash when enough charge is added
+
+	if (current_cooldown > world.time)
+		instability += 1 * (amount / 1000000)
+		visible_message(SPAN_WARNING("The [src] warps and strains against the containment field."))
+
 	current_charge += amount
+	current_charge_per_second += amount
+	if (current_charge_window < world.time && current_charge_per_second < required_charge_per_second)
+		current_charge = 0 //do something more here
+		return
 	if (current_charge >= max_charge)
 		addtimer(new Callback(src, PROC_REF(emergency_discharge)), 1 MINUTE) //bsd can only hold charge for 1 minute before it has to discharge
 		visible_message(SPAN_NOTICE("The bluespace drive hums loudly as it begins charging for a jump."))

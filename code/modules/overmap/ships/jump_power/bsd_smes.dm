@@ -15,8 +15,9 @@
 	icon_state = "generator0"
 	density = TRUE
 	var/max_energy = 0
-	var/min_energy = 4 MEGAWATTS		 // Minimal energy required to start and maintain discharging.
-	var/set_output = 0
+	var/min_energy = 1 MEGAWATTS		 // Minimal energy required to start and maintain discharging.
+	var/set_output = 1 MEGAWATTS     	// Target energy output rate when discharging.
+	var/last_charge = 0
 	var/running = CAPACITOR_OFF            // Whether the capacitor is discharging or not.
 	var/output_attempt = FALSE
 	var/input_cut = FALSE
@@ -31,6 +32,7 @@
 	. = ..()
 	for (var/obj/machinery/bluespacedrive/bsd in oview(src, 4))
 		connected_drive = bsd
+		connected_drive.connected_capacitors += src
 		return
 
 /obj/machinery/power/capacitor/on_update_icon()
@@ -52,6 +54,7 @@
 /obj/machinery/power/capacitor/proc/stop_discharge()
 	STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 	running = CAPACITOR_OFF
+	last_charge = 0
 	on_update_icon()
 
 /obj/machinery/power/capacitor/proc/deliver_charge(requested_power)
@@ -64,8 +67,8 @@
 		return
 
 	//draw a lightning arc to the bsd later
+	last_charge = requested_power
 	connected_drive.add_charge(requested_power)
-
 
 /obj/machinery/power/capacitor/Process()
 	if(running == CAPACITOR_DISCHARGING)

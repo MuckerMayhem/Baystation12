@@ -4166,11 +4166,10 @@
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/bluespacebay)
 "iT" = (
-/obj/machinery/computer/modular/preset/engineering{
-	dir = 8;
-	icon_state = "console"
-	},
 /obj/floor_decal/industrial/outline/yellow,
+/obj/machinery/computer/modular/preset/bsd{
+	dir = 8
+	},
 /turf/simulated/floor/tiled/techfloor,
 /area/engineering/bluespacebay)
 "iW" = (
@@ -6497,6 +6496,22 @@
 /obj/structure/catwalk,
 /turf/simulated/floor/plating,
 /area/maintenance/seconddeck/foreport)
+"ph" = (
+/obj/catwalk_plated,
+/obj/machinery/power/capacitor{
+	id_tag = "capacitor 4"
+	},
+/obj/structure/cable{
+	d2 = 8;
+	icon_state = "0-8"
+	},
+/obj/structure/cable{
+	d1 = 1;
+	d2 = 8;
+	icon_state = "1-8"
+	},
+/turf/simulated/floor/bluegrid,
+/area/engineering/bluespace)
 "pi" = (
 /turf/simulated/floor/plating,
 /area/maintenance/seconddeck/foreport)
@@ -7716,7 +7731,9 @@
 /area/engineering/bluespace)
 "rF" = (
 /obj/catwalk_plated,
-/obj/machinery/power/capacitor,
+/obj/machinery/power/capacitor{
+	id_tag = "capacitor 3"
+	},
 /obj/structure/cable{
 	d2 = 4;
 	icon_state = "0-4"
@@ -13768,7 +13785,9 @@
 	dir = 4
 	},
 /obj/catwalk_plated,
-/obj/machinery/power/capacitor,
+/obj/machinery/power/capacitor{
+	id_tag = "capacitor 1"
+	},
 /obj/structure/cable{
 	d2 = 2;
 	icon_state = "0-2"
@@ -14080,7 +14099,9 @@
 /obj/floor_decal/industrial/warning{
 	dir = 8
 	},
-/obj/machinery/power/debug_items/infinite_generator,
+/obj/machinery/power/debug_items/infinite_generator{
+	power_generation_rate = 1e+009
+	},
 /obj/structure/cable{
 	d2 = 4;
 	icon_state = "0-4"
@@ -15999,6 +16020,17 @@
 	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/engineering/prototype/control)
+"Qm" = (
+/obj/catwalk_plated,
+/obj/machinery/power/capacitor{
+	id_tag = "capacitor 2"
+	},
+/obj/structure/cable{
+	d2 = 2;
+	icon_state = "0-2"
+	},
+/turf/simulated/floor/bluegrid,
+/area/engineering/bluespace)
 "Qn" = (
 /obj/machinery/atmospherics/binary/pump{
 	dir = 4;
@@ -17176,20 +17208,6 @@
 	},
 /turf/simulated/floor/plating,
 /area/engineering/prototype/engine)
-"Ui" = (
-/obj/catwalk_plated,
-/obj/machinery/power/capacitor,
-/obj/structure/cable{
-	d2 = 8;
-	icon_state = "0-8"
-	},
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 8;
-	icon_state = "1-8"
-	},
-/turf/simulated/floor/bluegrid,
-/area/engineering/bluespace)
 "Uj" = (
 /obj/machinery/firealarm{
 	dir = 1;
@@ -33882,11 +33900,11 @@ OV
 dn
 Gm
 jV
-HH
+Qm
 ix
 tm
 hy
-Ui
+ph
 jV
 qv
 xp
