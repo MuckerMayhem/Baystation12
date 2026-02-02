@@ -113,43 +113,73 @@
 </div>
 
 	<div class='block' style='clear: both;'>
-		<h3>Navigation data</h3>
-		<div class='item'>
-			<div class="itemLabel">
-				Location:
+		<div style="float:left;width:70%">
+			<h3>Navigation data</h3>
+			<div class='item'>
+				<div class="itemLabel">
+					Location:
+				</div>
+				<div class="itemContent">
+						{{:data.sector}}
+				</div>
 			</div>
-			<div class="itemContent">
-					{{:data.sector}}
+			<div class='item'>
+				<div class="itemLabel">
+					Coordinates:
+				</div>
+				<div class="itemContent">
+					{{:data.s_x}} : {{:data.s_y}}
+				</div>
 			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Coordinates:
+			<div class='item'>
+				<div class="itemLabel">
+					Scan data:
+				</div>
+				<div class="itemContent">
+					{{:data.sector_info}}
+				</div>
 			</div>
-			<div class="itemContent">
-				{{:data.s_x}} : {{:data.s_y}}
+			<div class='item'>
+				<div class="itemLabel">
+					Status:
+				</div>
+				<div class="itemContent">
+					{{:data.landed}}
+				</div>
 			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Scan data:
-			</div>
-			<div class="itemContent">
-				{{:data.sector_info}}
-			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Status:
-			</div>
-			<div class="itemContent">
-				{{:data.landed}}
-			</div>
-		</div>
 		<div class='item'>
 			{{:helper.link('Save current position', 'disk', { 'add' : 'current' }, null)}}
 			{{:helper.link('Add new entry', 'document', { 'add' : 'new' }, null)}}
 		</div>
+		</div>
+	<div style="float:left;width:30%">
+	<fieldset style="min-height:180px;background-color: #202020;">
+		<legend style="text-align:center">Microjump</legend>
+		<div class='item'>
+			<div class="itemLabelWide">
+				Target:
+			</div>
+			<div class="itemContent">
+				{{if data.jump_dest}}
+					{{:helper.link(data.jump_d_x, null, { 'setjumpx' : 1 }, null, null)}} {{:helper.link(data.jump_d_y, null, { 'setjumpy' : 1 }, null, null)}}
+				{{else}}
+					{{:helper.link('None', null, { 'setjumpy' : 1, 'setjumpx' : 1 }, null, null)}}
+				{{/if}}
+			</div>
+		</div>
+		<div class='item'>
+			<div class="itemLabel">
+				Charge:
+			</div>
+			<div class="itemContent">
+				{{:data.charge_percent}}%
+			</div>
+		</div>
+		<div class="item">
+			{{:helper.link(data.jumping ? 'Engaged' : 'Disengaged', 'gear', { 'jump' : 1 }, data.jump_dest ? null : 'disabled', data.jumping ? 'selected' : null)}}
+		</div>
+	</fieldset>
+	</div>
 		<div class='statusDisplay'>
 		<table style="width:100%">
 		<tr><th style="width:40%">Name<th>Coordinates<th>Actions

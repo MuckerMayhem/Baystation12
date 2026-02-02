@@ -29,12 +29,20 @@
 	var/thrust_limit = 1  //global thrust limit for all engines, 0..1
 	var/skill_needed = SKILL_TRAINED  //piloting skill needed to steer it without going in random dir
 	var/operator_skill
+	var/obj/machinery/bluespacedrive/bsd
+	var/jumping = FALSE
 
 /obj/overmap/visitable/ship/Initialize()
 	. = ..()
 	glide_size = world.icon_size
 	SSshuttle.ships += src
 	base_sensor_visibility = initial(base_sensor_visibility) + round(sqrt(vessel_mass/SENSOR_COEFFICENT),1)
+
+	for (var/obj/machinery/bluespacedrive/drive in SSmachines.machinery)
+		if (drive.z in map_z)
+			bsd = drive
+			bsd.ship = src
+			break
 
 /obj/overmap/visitable/ship/Destroy()
 	SSshuttle.ships -= src
@@ -190,23 +198,25 @@
 /obj/overmap/visitable/ship/proc/get_speed_sensor_increase()
 	return min(get_speed() * 1000, 50) //Engines should never increase sensor visibility by more than 50.
 
-/obj/overmap/visitable/ship/proc/can_jump(at_x, at_y)
-	. = FALSE
-	for (var/obj/machinery/bluespacedrive/bsd in SSmachines.machinery)
-		if (bsd.z in map_z)
-			. = TRUE
-			break
-
+/obj/overmap/visitable/ship/proc/can_jump(at_x, at_y, silent = FALSE)
+	if (bsd.current_charge < bsd.max_charge)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
+		return FALSE
 	if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
 		return FALSE
 	if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
 		return FALSE
 
-	return .
+	return TRUE
 
 /obj/overmap/visitable/ship/proc/start_microjump(at_x, at_y, skip_jump_check = FALSE)
 	if (!skip_jump_check && !can_jump(at_x, at_y))
 		return FALSE
+	jumping = TRUE
+
+	bsd.perform_jump()
 
 	var/turf/destination = locate(at_x, at_y, z)
 	new /obj/ftl (get_turf(destination))

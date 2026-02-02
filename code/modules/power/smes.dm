@@ -1,9 +1,3 @@
-// the SMES
-// stores power
-
-#define SMESMAXCHARGELEVEL 250000
-#define SMESMAXOUTPUT 250000
-
 /obj/machinery/power/smes
 	name = "power storage unit"
 	desc = "A high-capacity superconducting magnetic energy storage (SMES) unit."

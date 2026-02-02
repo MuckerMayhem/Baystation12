@@ -36,6 +36,10 @@
 	var/interlude_max_time = 3 MINUTES
 
 	var/next_zap_time = 0
+	var/list/obj/machinery/power/capacitor/connected_capacitors = list()
+	var/current_charge = 0
+	var/max_charge = 50 MEGAWATTS
+	var/obj/overmap/visitable/ship/ship
 
 
 /obj/machinery/bluespacedrive/Destroy()
@@ -128,7 +132,6 @@
 		playsound(loc, 'sound/machines/BSD_interact.ogg', 40)
 	return TRUE
 
-
 /obj/machinery/bluespacedrive/examine_damage_state(mob/user)
 	if (health_dead())
 		to_chat(user, SPAN_DANGER("Its field is completely destroyed, the core revealed under the arcing debris."))
@@ -175,6 +178,40 @@
 			continue
 		floor.ChangeTurf(/turf/simulated/floor/bluespace)
 
+/obj/machinery/bluespacedrive/proc/add_charge(amount)
+	// Called by connected capacitors to add charge to the drive
+	// amount is in watts
+	// For now, we just create a flash when enough charge is added
+	current_charge += amount
+	if (current_charge >= max_charge)
+		addtimer(new Callback(src, PROC_REF(emergency_discharge)), 1 MINUTE) //bsd can only hold charge for 1 minute before it has to discharge
+		visible_message(SPAN_NOTICE("The bluespace drive hums loudly as it begins charging for a jump."))
+		if (state & STATE_UNSTABLE)
+			do_pulse()
+
+// /obj/machinery/bluespacedrive/proc/begin_jump_sequence()
+// 	jumping = TRUE
+// 	// playsound(loc, 'sound/machines/BSD_chargeup.ogg', 100, TRUE)
+// 	addtimer(new Callback(src, PROC_REF(perform_jump)), 5 SECONDS)
+
+/obj/machinery/bluespacedrive/proc/get_charge_percentage()
+	return (current_charge / max_charge) * 100
+
+//random location if done while unstable?
+/obj/machinery/bluespacedrive/proc/perform_jump()
+	current_charge = 0
+	// Actual jump logic handled elsewhere
+	visible_message(SPAN_NOTICE("The bluespace drive hums loudly as it activates, warping the space around the ship briefly before settling down."))
+	// playsound(loc, 'sound/machines/BSD_jump.ogg', 100, TRUE)
+	create_flash(FALSE, 10)
+
+/obj/machinery/bluespacedrive/proc/emergency_discharge()
+	if (current_charge <= 0)
+		return
+
+	visible_message(SPAN_DANGER("The bluespace drive emits a loud wailing noise as it forcefully discharges its stored energy!"))
+	create_flash(FALSE, 10)
+	current_charge = 0
 
 /datum/bubble_effect/bluespace_pulse
 	///List of mobs that can be swapped around when the pulse hits

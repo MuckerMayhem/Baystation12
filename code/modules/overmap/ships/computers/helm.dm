@@ -15,6 +15,8 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	var/list/known_sectors = list()
 	var/dx		//desitnation
 	var/dy		//coordinates
+	var/jump_dx
+	var/jump_dy
 	var/speedlimit = 1/(20 SECONDS) //top speed for autopilot, 5
 	var/accellimit = 0.001 //manual limiter for acceleration
 	/// The mob currently operating the helm - The last one to click one of the movement buttons and be on the overmap screen. Set to `null` for autopilot or when the mob isn't in range.
@@ -118,6 +120,11 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		data["manual_control"] = viewing_overmap(user)
 		data["canburn"] = linked.can_burn()
 		data["accellimit"] = accellimit*1000
+		data["jump_dest"] = jump_dx && jump_dy
+		data["jump_d_x"] = jump_dx
+		data["jump_d_y"] = jump_dy
+		data["jumping"] = linked.jumping
+		data["charge_percent"] = linked.bsd.get_charge_percentage()
 
 		var/speed = round(linked.get_speed()*1000, 0.01)
 		if(linked.get_speed() < SHIP_SPEED_SLOW)
@@ -203,6 +210,7 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		if (newy)
 			dy = clamp(newy, 1, world.maxy)
 
+
 	if (href_list["x"] && href_list["y"])
 		dx = text2num(href_list["x"])
 		dy = text2num(href_list["y"])
@@ -210,6 +218,35 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	if (href_list["reset"])
 		dx = 0
 		dy = 0
+
+	if (href_list["setjumpx"])
+		var/newx = input("Input new destination x coordinate", "Coordinate input", jump_dx) as num|null
+		if(!CanInteract(user,state))
+			return
+		if (newx)
+			jump_dx = clamp(newx, 1, world.maxx)
+
+	if (href_list["setjumpy"])
+		var/newy = input("Input new destination y coordinate", "Coordinate input", jump_dy) as num|null
+		if(!CanInteract(user,state))
+			return
+		if (newy)
+			jump_dy = clamp(newy, 1, world.maxy)
+	if (href_list["jumpx"] && href_list["jumpy"])
+		jump_dx = text2num(href_list["jumpx"])
+		jump_dy = text2num(href_list["jumpy"])
+
+	if (href_list["jump"])
+		if (!jump_dx || !jump_dy)
+			to_chat(user, SPAN_DANGER("Jump destination not set!"))
+		else if (linked.jumping)
+			to_chat(user, SPAN_DANGER("The ship is already mid-jump!"))
+		else
+			linked.start_microjump(jump_dx, jump_dy)
+
+	if (href_list["jumpreset"])
+		jump_dx = 0
+		jump_dy = 0
 
 	if (href_list["speedlimit"])
 		var/newlimit = input("Autopilot Speed Limit (0 ~ [round(linked.max_autopilot * 1000, 0.1)])", "Autopilot speed limit", speedlimit * 1000) as num|null
