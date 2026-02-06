@@ -3673,11 +3673,6 @@
 	icon_state = "railing0-1"
 	},
 /obj/catwalk_plated,
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "hz" = (
@@ -4001,11 +3996,6 @@
 	},
 /obj/structure/railing/mapped,
 /obj/catwalk_plated,
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "iy" = (
@@ -6496,22 +6486,6 @@
 /obj/structure/catwalk,
 /turf/simulated/floor/plating,
 /area/maintenance/seconddeck/foreport)
-"ph" = (
-/obj/catwalk_plated,
-/obj/machinery/power/capacitor{
-	id_tag = "capacitor 4"
-	},
-/obj/structure/cable{
-	d2 = 8;
-	icon_state = "0-8"
-	},
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 8;
-	icon_state = "1-8"
-	},
-/turf/simulated/floor/bluegrid,
-/area/engineering/bluespace)
 "pi" = (
 /turf/simulated/floor/plating,
 /area/maintenance/seconddeck/foreport)
@@ -7700,11 +7674,6 @@
 	},
 /obj/structure/railing/mapped,
 /obj/catwalk_plated,
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "rC" = (
@@ -7731,9 +7700,6 @@
 /area/engineering/bluespace)
 "rF" = (
 /obj/catwalk_plated,
-/obj/machinery/power/capacitor{
-	id_tag = "capacitor 3"
-	},
 /obj/structure/cable{
 	d2 = 4;
 	icon_state = "0-4"
@@ -7742,6 +7708,9 @@
 	d1 = 1;
 	d2 = 4;
 	icon_state = "1-4"
+	},
+/obj/machinery/power/debug_items/infinite_generator{
+	power_generation_rate = 1e+009
 	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
@@ -8052,11 +8021,6 @@
 	icon_state = "railing0-1"
 	},
 /obj/catwalk_plated,
-/obj/structure/cable{
-	d1 = 4;
-	d2 = 8;
-	icon_state = "4-8"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "sG" = (
@@ -8286,11 +8250,6 @@
 	dir = 4;
 	name = "east bump";
 	pixel_x = 24
-	},
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/dark,
 /area/engineering/bluespace)
@@ -8634,11 +8593,6 @@
 	icon_state = "railing0-1"
 	},
 /obj/catwalk_plated,
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "uh" = (
@@ -11017,11 +10971,6 @@
 	master_tag = "bsd_controller";
 	pixel_x = -23;
 	pixel_y = 23
-	},
-/obj/structure/cable{
-	d1 = 1;
-	d2 = 2;
-	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/dark,
 /area/engineering/bluespace)
@@ -13785,13 +13734,6 @@
 	dir = 4
 	},
 /obj/catwalk_plated,
-/obj/machinery/power/capacitor{
-	id_tag = "capacitor 1"
-	},
-/obj/structure/cable{
-	d2 = 2;
-	icon_state = "0-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "IN" = (
@@ -14099,9 +14041,6 @@
 /obj/floor_decal/industrial/warning{
 	dir = 8
 	},
-/obj/machinery/power/debug_items/infinite_generator{
-	power_generation_rate = 1e+009
-	},
 /obj/structure/cable{
 	d2 = 4;
 	icon_state = "0-4"
@@ -14110,6 +14049,7 @@
 	d2 = 8;
 	icon_state = "0-8"
 	},
+/obj/machinery/power/capacitor,
 /turf/simulated/floor/tiled/dark,
 /area/engineering/bluespace)
 "JF" = (
@@ -16022,13 +15962,6 @@
 /area/engineering/prototype/control)
 "Qm" = (
 /obj/catwalk_plated,
-/obj/machinery/power/capacitor{
-	id_tag = "capacitor 2"
-	},
-/obj/structure/cable{
-	d2 = 2;
-	icon_state = "0-2"
-	},
 /turf/simulated/floor/bluegrid,
 /area/engineering/bluespace)
 "Qn" = (
@@ -33904,7 +33837,7 @@ Qm
 ix
 tm
 hy
-ph
+Qm
 jV
 qv
 xp

@@ -1,5 +1,7 @@
 // Uses Lorentzian dynamics to avoid going too fast.
 #define SENSOR_COEFFICENT 1000
+#define MODE_JUMP 1
+#define MODE_HOP 2
 /obj/overmap/visitable/ship
 	name = "generic ship"
 	desc = "Space faring vessel."
@@ -31,6 +33,10 @@
 	var/operator_skill
 	var/obj/machinery/bluespacedrive/bsd
 	var/jumping = FALSE
+	var/mode = MODE_JUMP
+	var/obj/overmap/marker
+	var/hop_x
+	var/hop_y
 
 /obj/overmap/visitable/ship/Initialize()
 	. = ..()
@@ -202,14 +208,41 @@
 	if (bsd.current_charge < bsd.max_charge)
 		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
 		return FALSE
-	if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
-		to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
-		return FALSE
-	if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
-		to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
-		return FALSE
+	if (mode == SHIP_MODE_JUMP)
+		if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
+			to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
+			return FALSE
+		if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
+			to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
+			return FALSE
+	else
+		if (!is_moving())
+			to_chat(usr, SPAN_DANGER("The ship must be in motion to perform a hop!"))
+			return FALSE
 
 	return TRUE
+
+/obj/overmap/visitable/ship/proc/calculate_jump_precision(user, dest_x, dest_y, skip_skill_check = FALSE)
+	if (skip_skill_check)
+		return 1
+
+	return
+
+/obj/overmap/visitable/ship/proc/long_range_jump(at_x, at_y)
+	return
+
+/obj/overmap/visitable/ship/proc/calculate_hop_destination()
+	if (marker)
+		qdel(marker)
+	hop_x = x + (speed[1] * 1000)
+	hop_y = y + (speed[2] * 1000)
+	if (!marker)
+		marker = new
+	marker.icon_state = "event"
+	marker.color = COLOR_RED
+	marker.x = hop_x
+	marker.y = hop_y
+	marker.z = z
 
 /obj/overmap/visitable/ship/proc/start_microjump(at_x, at_y, skip_jump_check = FALSE)
 	if (!skip_jump_check && !can_jump(at_x, at_y))
@@ -217,6 +250,9 @@
 	jumping = TRUE
 
 	bsd.perform_jump()
+
+	if (marker)
+		qdel(marker)
 
 	var/turf/destination = locate(at_x, at_y, z)
 	new /obj/ftl (get_turf(destination))

@@ -36,40 +36,30 @@
 		return TOPIC_HANDLED
 
 	if (href_list["set_output"])
-		var/tag = href_list["id"]
-		var/new_value = input("Enter new output value in MW:", "Set Capacitor Output", "") as null|num
-		if (!isnum(new_value))
-			return TOPIC_HANDLED
-		for (var/obj/machinery/power/capacitor/capacitor in connected_drive.connected_capacitors)
-			if (capacitor.id_tag == tag)
-				capacitor.set_output = new_value MEGAWATTS
-				break
-	if (href_list["set_all"])
-		var/input = input("Enter new output for all capacitors in MW:", "Set Capacitors Output", "") as null|num
+		var/input = input("Enter new output for the capacitors in MW:", "Set Capacitors Output", "") as null|num
 		if (!isnum(input))
 			return TOPIC_HANDLED
-		for (var/obj/machinery/power/capacitor/capacitor in connected_drive.connected_capacitors)
-			capacitor.set_output = input MEGAWATTS
+		connected_drive.connected_capacitor.set_output = input MEGAWATTS
 		return TOPIC_REFRESH
 	if (href_list["discharge"])
-		for (var/obj/machinery/power/capacitor/capacitor in connected_drive.connected_capacitors)
-			capacitor.start_discharge()
+		connected_drive.connected_capacitor.start_discharge()
+		return TOPIC_REFRESH
+	if (href_list["toggle_auto_charge"])
+		connected_drive.connected_capacitor.auto_charge = !connected_drive.connected_capacitor.auto_charge
 		return TOPIC_REFRESH
 
 /datum/nano_module/program/bsd_control/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, master_ui = null, datum/topic_state/state = GLOB.default_state)
 	var/data = list()
 
 	data["drive_charge"] = connected_drive.get_charge_percentage()
-	var/list/capacitors = list()
-	for (var/obj/machinery/power/capacitor/capacitor in connected_drive.connected_capacitors)
-		capacitors[LIST_PRE_INC(capacitors)] = list(
-		"id" = capacitor.id_tag,
-		"set_output" = capacitor.set_output / 1000000, // Convert to MW for display.
-		"last_charge" = capacitor.last_charge / 1000000,
-		"running" = capacitor.running,
-		"drive_charge" = connected_drive.get_charge_percentage(),
-		)
-	data["capacitors"] = capacitors
+	data["required_charge_rate"] = connected_drive.required_charge_per_second / 1000000
+	var/obj/machinery/power/capacitor/capacitor = connected_drive.connected_capacitor
+	data["set_output"] = capacitor.set_output / 1000000 // Convert to MW for display.
+	data["last_charge"] = capacitor.last_charge / 1000000
+	data["running"] = capacitor.running
+	data["drive_charge"] = connected_drive.get_charge_percentage()
+	data["available_power"] = capacitor.powernet.avail / 1000000
+	data["auto_charge"] = capacitor.auto_charge
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)
 		ui = new(user, src, ui_key, "bsd_controller.tmpl", src.name, 625, 625, state = state)

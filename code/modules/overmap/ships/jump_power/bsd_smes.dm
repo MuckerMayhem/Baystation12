@@ -19,6 +19,7 @@
 	var/set_output = 1 MEGAWATTS     	// Target energy output rate when discharging.
 	var/last_charge = 0
 	var/running = CAPACITOR_OFF            // Whether the capacitor is discharging or not.
+	var/auto_charge = FALSE
 	var/output_attempt = FALSE
 	var/input_cut = FALSE
 	var/input_pulsed = FALSE
@@ -32,7 +33,7 @@
 	. = ..()
 	for (var/obj/machinery/bluespacedrive/bsd in oview(src, 4))
 		connected_drive = bsd
-		connected_drive.connected_capacitors += src
+		connected_drive.connected_capacitor = src
 		return
 
 /obj/machinery/power/capacitor/on_update_icon()

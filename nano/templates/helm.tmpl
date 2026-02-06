@@ -156,6 +156,12 @@
 	<fieldset style="min-height:180px;background-color: #202020;">
 		<legend style="text-align:center">Microjump</legend>
 		<div class='item'>
+			<div class="itemLabel">
+				Mode:
+			</div>
+			<div class="item">
+				{{:helper.link(data.current_mode, null, { 'mode' : 1 }, null, null)}}
+			</div>
 			<div class="itemLabelWide">
 				Target:
 			</div>
@@ -171,8 +177,16 @@
 			<div class="itemLabel">
 				Charge:
 			</div>
-			<div class="itemContent">
+			<div style="float:right">
 				{{:data.charge_percent}}%
+			</div>
+		</div>
+		<div class='item'>
+			<div class="itemLabel">
+				Cost:
+			</div>
+			<div style="float:right">
+				{{:data.jump_cost}} MW
 			</div>
 		</div>
 		<div class="item">

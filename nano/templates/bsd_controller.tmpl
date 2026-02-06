@@ -6,39 +6,51 @@
         {{:helper.displayBar(data.drive_charge, 0, 100, (data.drive_charge == 100) ? 'good' : (data.drive_charge >= 50) ? 'average' : 'bad')}} {{:data.drive_charge}}%
     </div>
     <div class="itemLabel">
-        {{:helper.link('Set All', null, { 'set_all' : 1}, null)}}
+        Required Charge Per Second:
+    </div>
+    <div class="itemContent">
+        {{:data.required_charge_rate}} MW
+    </div>
+    <div class="itemLabel">
+        Available Power:
+    </div>
+    <div class="itemContent">
+        {{:data.available_power}} MW
     </div>
     <div class="itemLabel">
         {{:helper.link('Begin Discharge', null, { 'discharge' : 1}, null)}}
     </div>
+    <div class="itemLabel">
+        Auto Charge:
+    </div>
+    <div class="itemContent">
+        {{:helper.link(data.auto_charge ? "ON" : "OFF", null, {'toggle_auto_charge' : 1, 'discharge' : 1}, null)}}
+    </div>
 </div>
 <hr><br>
-{{for data.capacitors}}
+<div style="float:left;width:30%>
     <div class="item">
-        <div class="itemLabel">
-            {{:value.id}}:
-        </div>
         <div class="itemContent">
             <div class="item">
                 <div class="itemLabel">
                     Maximum Input:
                 </div>
                 <div class="itemContent">
-                    {{:helper.link(value.set_output, null, { 'id' : value.id, 'set_output' : 1}, null)}} MW
+                    {{:helper.link(data.set_output, null, {'set_output' : 1}, null)}} MW
                 </div>
                 <div class="itemLabel">
-                    Current Throughput:
+                    Throughput:
                 </div>
                 <div class="itemContent">
-                    {{:value.last_charge}} MW
+                    {{:data.last_charge}} MW
                 </div>
                 <div class="itemLabel">
                     Status:
                 </div>
                 <div class="itemContent">
-                    {{:value.running ? "DISCHARGING" : "IDLE"}}
+                    {{:data.running ? "DISCHARGING" : "IDLE"}}
                 </div>
             </div>
         </div>
     </div>
-{{/for}}
+</div>

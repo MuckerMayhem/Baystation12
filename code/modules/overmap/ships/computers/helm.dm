@@ -101,6 +101,11 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	else
 		var/turf/T = get_turf(linked)
 		var/obj/overmap/visitable/sector/current_sector = locate() in T
+		var/current_mode
+		if (linked.mode == SHIP_MODE_JUMP)
+			current_mode = "Jump"
+		else
+			current_mode = "Hop"
 
 		var/mob/living/silicon/silicon = user
 		data["viewing_silicon"] = ismachinerestricted(silicon)
@@ -123,7 +128,9 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		data["jump_dest"] = jump_dx && jump_dy
 		data["jump_d_x"] = jump_dx
 		data["jump_d_y"] = jump_dy
+		data["jump_cost"] = linked.bsd.get_jump_cost_mw()
 		data["jumping"] = linked.jumping
+		data["current_mode"] = current_mode
 		data["charge_percent"] = linked.bsd.get_charge_percentage()
 
 		var/speed = round(linked.get_speed()*1000, 0.01)
@@ -225,6 +232,7 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 			return
 		if (newx)
 			jump_dx = clamp(newx, 1, world.maxx)
+			linked.bsd.get_current_mode_cost(jump_dx, jump_dy)
 
 	if (href_list["setjumpy"])
 		var/newy = input("Input new destination y coordinate", "Coordinate input", jump_dy) as num|null
@@ -232,9 +240,7 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 			return
 		if (newy)
 			jump_dy = clamp(newy, 1, world.maxy)
-	if (href_list["jumpx"] && href_list["jumpy"])
-		jump_dx = text2num(href_list["jumpx"])
-		jump_dy = text2num(href_list["jumpy"])
+			linked.bsd.get_current_mode_cost(jump_dx, jump_dy)
 
 	if (href_list["jump"])
 		if (!jump_dx || !jump_dy)
@@ -247,6 +253,12 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	if (href_list["jumpreset"])
 		jump_dx = 0
 		jump_dy = 0
+
+	if (href_list["mode"])
+		if (linked.mode == SHIP_MODE_JUMP)
+			linked.mode = SHIP_MODE_HOP
+		else
+			linked.mode = SHIP_MODE_JUMP
 
 	if (href_list["speedlimit"])
 		var/newlimit = input("Autopilot Speed Limit (0 ~ [round(linked.max_autopilot * 1000, 0.1)])", "Autopilot speed limit", speedlimit * 1000) as num|null

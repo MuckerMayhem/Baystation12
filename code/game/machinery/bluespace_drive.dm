@@ -36,9 +36,10 @@
 	var/interlude_max_time = 3 MINUTES
 
 	var/next_zap_time = 0
-	var/list/obj/machinery/power/capacitor/connected_capacitors = list()
+	var/obj/machinery/power/capacitor/connected_capacitor
 	var/current_charge = 0
 	var/max_charge = 50 MEGAWATTS
+	var/minimum_charge = 10 MEGAWATTS
 	var/required_charge_per_second = 4 MEGAWATTS
 	var/current_charge_per_second = 0
 	var/current_charge_window = 0
@@ -46,6 +47,9 @@
 	var/current_cooldown = 0
 	var/instability_score = 0
 	var/max_instability = 100
+	var/cost_per_step = 4 //final calculation will be in MW, adding the multiplier then
+	var/long_range_cost_multiplier = 5
+	var/short_range_limit = 5
 	var/obj/overmap/visitable/ship/ship
 
 
@@ -57,7 +61,7 @@
 
 /obj/machinery/bluespacedrive/Initialize()
 	. = ..()
-	drive_sound = GLOB.sound_player.PlayLoopingSound(src, "\ref[src]", 'sound/machines/BSD_idle.ogg', 50, 10)
+	drive_sound = GLOB.sound_player.PlayLoopingSound(src, "\ref[src]", 'sound/machines/BSD_idle.ogg', 50, 12)
 	AddParticles(/particles/torus/bluespace)
 	set_light(15, 1, COLOR_CYAN)
 	update_icon()
@@ -191,13 +195,15 @@
 	// For now, we just create a flash when enough charge is added
 
 	if (current_cooldown > world.time)
-		instability += 1 * (amount / 1000000)
+		instability_score += 1 * (amount / 1000000)
 		visible_message(SPAN_WARNING("The [src] warps and strains against the containment field."))
 
-	current_charge += amount
+	current_charge = min(current_charge + amount, max_charge)
 	current_charge_per_second += amount
-	if (current_charge_window < world.time && current_charge_per_second < required_charge_per_second)
+	if (current_charge_per_second < required_charge_per_second)
+		connected_capacitor.stop_discharge()
 		current_charge = 0 //do something more here
+		instability_score += (max_charge - current_charge) / 1000000
 		return
 	if (current_charge >= max_charge)
 		addtimer(new Callback(src, PROC_REF(emergency_discharge)), 1 MINUTE) //bsd can only hold charge for 1 minute before it has to discharge
@@ -213,6 +219,45 @@
 /obj/machinery/bluespacedrive/proc/get_charge_percentage()
 	return (current_charge / max_charge) * 100
 
+/obj/machinery/bluespacedrive/proc/get_current_mode_cost(dest_x, dest_y)
+	if (ship.mode == SHIP_MODE_JUMP)
+		return get_jump_cost(dest_x, dest_y)
+
+	return get_hop_cost()
+
+/obj/machinery/bluespacedrive/proc/get_jump_cost(dest_x, dest_y)
+	if (!dest_x || !dest_y)
+		return 0
+
+	var/use_long_distance_multiplier = FALSE
+	var/distance_to_target = get_dist(ship, locate(dest_x, dest_y, ship.z))
+
+	if (ship.x == dest_x && ship.y == dest_y)
+		return 10 MEGAWATTS //or whatever
+
+	if (distance_to_target > short_range_limit)
+		use_long_distance_multiplier = TRUE
+
+	var/initial_cost = distance_to_target * cost_per_step
+	max_charge = max(use_long_distance_multiplier ? initial_cost * use_long_distance_multiplier : initial_cost, initial(max_charge) / 1000000) MEGAWATTS
+	required_charge_per_second = max_charge / 4
+
+/obj/machinery/bluespacedrive/proc/get_hop_cost()
+	if (!ship.speed[1] && !ship.speed[2])
+		return INFINITY //not moving so can't do a hop
+
+	var/cost = 0
+	if (ship.speed[1])
+		cost += ship.speed[1] * 1.5
+	if (ship.speed[2])
+		cost += ship.speed[2] * 1.5
+
+	max_charge = cost MEGAWATTS
+	return cost
+
+/obj/machinery/bluespacedrive/proc/get_jump_cost_mw()
+	return max_charge / 1000000
+
 //random location if done while unstable?
 /obj/machinery/bluespacedrive/proc/perform_jump()
 	current_charge = 0
@@ -220,6 +265,9 @@
 	visible_message(SPAN_NOTICE("The bluespace drive hums loudly as it activates, warping the space around the ship briefly before settling down."))
 	// playsound(loc, 'sound/machines/BSD_jump.ogg', 100, TRUE)
 	create_flash(FALSE, 10)
+
+	if (connected_capacitor.auto_charge)
+		connected_capacitor.start_discharge()
 
 /obj/machinery/bluespacedrive/proc/emergency_discharge()
 	if (current_charge <= 0)
