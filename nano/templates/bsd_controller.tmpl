@@ -11,6 +11,13 @@
     <div class="itemContent">
         {{:data.required_charge_rate}} MW
     </div>
+    </div>
+    <div class="itemLabel">
+        Required Total Charge:
+    </div>
+    <div class="itemContent">
+        {{:data.required_total_charge}} MW
+    </div>
     <div class="itemLabel">
         Available Power:
     </div>
@@ -18,39 +25,35 @@
         {{:data.available_power}} MW
     </div>
     <div class="itemLabel">
-        {{:helper.link('Begin Discharge', null, { 'discharge' : 1}, null)}}
-    </div>
-    <div class="itemLabel">
         Auto Charge:
     </div>
     <div class="itemContent">
         {{:helper.link(data.auto_charge ? "ON" : "OFF", null, {'toggle_auto_charge' : 1, 'discharge' : 1}, null)}}
     </div>
+    <div class="itemLabel">
+        {{:helper.link('Begin Discharge', null, { 'discharge' : 1}, null)}}
+    </div>
 </div>
 <hr><br>
 <div style="float:left;width:30%>
     <div class="item">
+        <div class="itemLabel">
+            Maximum Input:
+        </div>
         <div class="itemContent">
-            <div class="item">
-                <div class="itemLabel">
-                    Maximum Input:
-                </div>
-                <div class="itemContent">
-                    {{:helper.link(data.set_output, null, {'set_output' : 1}, null)}} MW
-                </div>
-                <div class="itemLabel">
-                    Throughput:
-                </div>
-                <div class="itemContent">
-                    {{:data.last_charge}} MW
-                </div>
-                <div class="itemLabel">
-                    Status:
-                </div>
-                <div class="itemContent">
-                    {{:data.running ? "DISCHARGING" : "IDLE"}}
-                </div>
-            </div>
+            {{:helper.link(data.set_output, null, {'set_output' : 1}, null)}} MW
+        </div>
+        <div class="itemLabel">
+            Throughput:
+        </div>
+        <div class="itemContent">
+            {{:data.last_charge}} MW
+        </div>
+        <div class="itemLabel">
+            Status:
+        </div>
+        <div class="itemContent">
+            {{:data.running ? "DISCHARGING" : "IDLE"}}
         </div>
     </div>
 </div>

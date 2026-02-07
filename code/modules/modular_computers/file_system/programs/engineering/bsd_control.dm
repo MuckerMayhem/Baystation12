@@ -53,6 +53,7 @@
 
 	data["drive_charge"] = connected_drive.get_charge_percentage()
 	data["required_charge_rate"] = connected_drive.required_charge_per_second / 1000000
+	data["required_total_charge"] = connected_drive.max_charge / 1000000
 	var/obj/machinery/power/capacitor/capacitor = connected_drive.connected_capacitor
 	data["set_output"] = capacitor.set_output / 1000000 // Convert to MW for display.
 	data["last_charge"] = capacitor.last_charge / 1000000
