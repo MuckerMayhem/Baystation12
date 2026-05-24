@@ -18,6 +18,8 @@
 	name = "Bluespace Drive Control"
 	available_to_ai = TRUE
 	var/obj/machinery/bluespacedrive/connected_drive
+	var/jump_dx
+	var/jump_dy
 
 /datum/nano_module/program/bsd_control/New()
 	..()
@@ -47,6 +49,23 @@
 	if (href_list["toggle_auto_charge"])
 		connected_drive.connected_capacitor.auto_charge = !connected_drive.connected_capacitor.auto_charge
 		return TOPIC_REFRESH
+	if (href_list["setjumpx"])
+		var/newx = input("Input new destination x coordinate", "Coordinate input", jump_dx) as num|null
+		if (newx)
+			jump_dx = clamp(newx, 1, world.maxx)
+			connected_drive.get_jump_cost(jump_dx, jump_dy)
+	if (href_list["setjumpy"])
+		var/newy = input("Input new destination y coordinate", "Coordinate input", jump_dy) as num|null
+		if (newy)
+			jump_dy = clamp(newy, 1, world.maxy)
+			connected_drive.get_jump_cost(jump_dx, jump_dy)
+	if (href_list["jump"])
+		if (!jump_dx || !jump_dy)
+			to_chat(usr, SPAN_DANGER("Jump destination not set!"))
+			return TOPIC_HANDLED
+		else if (connected_drive.current_charge < connected_drive.max_charge)
+			to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
+			return TOPIC_HANDLED
 
 /datum/nano_module/program/bsd_control/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, master_ui = null, datum/topic_state/state = GLOB.default_state)
 	var/data = list()
@@ -61,6 +80,8 @@
 	data["drive_charge"] = connected_drive.get_charge_percentage()
 	data["available_power"] = capacitor.powernet.avail / 1000000
 	data["auto_charge"] = capacitor.auto_charge
+	data["jump_dx"] = jump_dx
+	data["jump_dy"] = jump_dy
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)
 		ui = new(user, src, ui_key, "bsd_controller.tmpl", src.name, 625, 625, state = state)

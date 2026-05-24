@@ -226,29 +226,13 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		dx = 0
 		dy = 0
 
-	if (href_list["setjumpx"])
-		var/newx = input("Input new destination x coordinate", "Coordinate input", jump_dx) as num|null
-		if(!CanInteract(user,state))
-			return
-		if (newx)
-			jump_dx = clamp(newx, 1, world.maxx)
-			linked.bsd.get_current_mode_cost(jump_dx, jump_dy)
-
-	if (href_list["setjumpy"])
-		var/newy = input("Input new destination y coordinate", "Coordinate input", jump_dy) as num|null
-		if(!CanInteract(user,state))
-			return
-		if (newy)
-			jump_dy = clamp(newy, 1, world.maxy)
-			linked.bsd.get_current_mode_cost(jump_dx, jump_dy)
-
-	if (href_list["jump"])
+	if (href_list["hop"])
 		if (!jump_dx || !jump_dy)
-			to_chat(user, SPAN_DANGER("Jump destination not set!"))
+			to_chat(user, SPAN_DANGER("Hop destination not set!"))
 		else if (linked.jumping)
 			to_chat(user, SPAN_DANGER("The ship is already mid-jump!"))
 		else
-			linked.start_microjump(jump_dx, jump_dy)
+			linked.start_microjump(jump_dx, jump_dy, SHIP_MODE_HOP)
 
 	if (href_list["jumpreset"])
 		jump_dx = 0

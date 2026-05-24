@@ -157,24 +157,6 @@
 		<legend style="text-align:center">Microjump</legend>
 		<div class='item'>
 			<div class="itemLabel">
-				Mode:
-			</div>
-			<div class="item">
-				{{:helper.link(data.current_mode, null, { 'mode' : 1 }, null, null)}}
-			</div>
-			<div class="itemLabelWide">
-				Target:
-			</div>
-			<div class="itemContent">
-				{{if data.jump_dest}}
-					{{:helper.link(data.jump_d_x, null, { 'setjumpx' : 1 }, null, null)}} {{:helper.link(data.jump_d_y, null, { 'setjumpy' : 1 }, null, null)}}
-				{{else}}
-					{{:helper.link('None', null, { 'setjumpy' : 1, 'setjumpx' : 1 }, null, null)}}
-				{{/if}}
-			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
 				Charge:
 			</div>
 			<div style="float:right">
@@ -186,11 +168,11 @@
 				Cost:
 			</div>
 			<div style="float:right">
-				{{:data.jump_cost}} MW
+				{{:data.hop_cost}} MW
 			</div>
 		</div>
 		<div class="item">
-			{{:helper.link(data.jumping ? 'Engaged' : 'Disengaged', 'gear', { 'jump' : 1 }, data.jump_dest ? null : 'disabled', data.jumping ? 'selected' : null)}}
+			{{:helper.link(data.jumping ? 'Engaged' : 'Disengaged', 'gear', { 'jump' : 1 }, data.jumping ? 'selected' : null)}}
 		</div>
 	</fieldset>
 	</div>

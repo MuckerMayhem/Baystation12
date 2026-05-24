@@ -205,27 +205,42 @@
 	return min(get_speed() * 1000, 50) //Engines should never increase sensor visibility by more than 50.
 
 /obj/overmap/visitable/ship/proc/can_jump(at_x, at_y, silent = FALSE)
+	if (!bsd)
+		to_chat(usr, SPAN_DANGER("This ship does not have a bluespace drive!"))
+		return FALSE
+	if (bsd.current_cooldown > world.time)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is still on cooldown!"))
+		return FALSE
 	if (bsd.current_charge < bsd.max_charge)
 		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
 		return FALSE
-	if (mode == SHIP_MODE_JUMP)
-		if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
-			to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
-			return FALSE
-		if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
-			to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
-			return FALSE
-	else
-		if (!is_moving())
-			to_chat(usr, SPAN_DANGER("The ship must be in motion to perform a hop!"))
-			return FALSE
+	if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
+		return FALSE
+	if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
+		return FALSE
 
+	return TRUE
+
+/obj/overmap/visitable/ship/proc/can_hop()
+	if (!bsd)
+		to_chat(usr, SPAN_DANGER("This ship does not have a bluespace drive!"))
+		return FALSE
+	if (bsd.current_cooldown > world.time)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is still on cooldown!"))
+		return FALSE
+	if (bsd.current_charge < bsd.max_charge)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
+		return FALSE
+	if (!is_moving())
+		to_chat(usr, SPAN_DANGER("The ship must be in motion to perform a hop!"))
+		return FALSE
 	return TRUE
 
 /obj/overmap/visitable/ship/proc/calculate_jump_precision(user, dest_x, dest_y, skip_skill_check = FALSE)
 	if (skip_skill_check)
 		return 1
-
 	return
 
 /obj/overmap/visitable/ship/proc/long_range_jump(at_x, at_y)
@@ -244,11 +259,15 @@
 	marker.y = hop_y
 	marker.z = z
 
-/obj/overmap/visitable/ship/proc/start_microjump(at_x, at_y, skip_jump_check = FALSE)
-	if (!skip_jump_check && !can_jump(at_x, at_y))
-		return FALSE
-	jumping = TRUE
+/obj/overmap/visitable/ship/proc/start_microjump(at_x, at_y, mode, skip_jump_check = FALSE)
+	if (!skip_jump_check)
+		if (mode == SHIP_MODE_JUMP && !can_jump(at_x, at_y))
+			return FALSE
+		else
+			if (!can_hop())
+				return FALSE
 
+	jumping = TRUE
 	bsd.perform_jump()
 
 	if (marker)
