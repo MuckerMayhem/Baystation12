@@ -13,14 +13,14 @@
 	name = "Derelict Vessel"
 	..()
 
-/datum/map_template/ruin/away_site/requiem
+/datum/map_template/ruin/requiem
 	name = "Crashed Sol Exploration Vessel"
 	id = "awaysite_requiem"
 	spawn_cost = 2
 	description = "An arctic planet with a crashed Sol ship."
-	suffixes = list("requiem/requiem-1.dmm","requiem/requiem-2.dmm")
+	suffixes = list("maps/event/requiem/requiem-1.dmm","maps/event/requiem/requiem-2.dmm")
 	template_flags = TEMPLATE_FLAG_SPAWN_GUARANTEED
-	generate_mining_by_z = 2
+	// generate_mining_by_z = 2
 
 	area_usage_test_exempted_root_areas = list(/area/requiem)
 	apc_test_exempt_areas = list(

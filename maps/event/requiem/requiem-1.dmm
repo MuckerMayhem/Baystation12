@@ -208,7 +208,7 @@
 /turf/simulated/floor/beach/sand,
 /area/requiem/underground)
 "kC" = (
-/obj/item/gun/projectile/pistol/military,
+/obj/item/gun/projectile/pistol,
 /turf/simulated/floor/beach/sand,
 /area/requiem/underground)
 "kI" = (
