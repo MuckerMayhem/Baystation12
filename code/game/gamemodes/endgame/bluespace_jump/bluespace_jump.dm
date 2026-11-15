@@ -4,15 +4,22 @@
 	var/list/bluegoasts = list()
 	var/list/affected_levels
 	var/list/old_accessible_z_levels
+	/// Keep ship overmap icon for microjumps
+	var/keep_ship
 
 
-/datum/universal_state/bluespace_jump/New(list/zlevels)
+/datum/universal_state/bluespace_jump/New(list/zlevels, keep_ship = FALSE)
 	affected_levels = zlevels
+	src.keep_ship = keep_ship
 
 /datum/universal_state/bluespace_jump/OnEnter()
-	var/obj/machinery/bluespacedrive/drive = locate(/obj/machinery/bluespacedrive) in MACHINES_OF(/obj/machinery/bluespacedrive)
+	var/obj/machinery/bluespacedrive/drive
+	for (var/obj/machinery/bluespacedrive/candidate as anything in MACHINES_OF(/obj/machinery/bluespacedrive))
+		if (candidate.z in affected_levels)
+			drive = candidate
+			break
 
-	if (!drive || !(drive.z in affected_levels))
+	if (!drive)
 		return
 
 	if (HAS_FLAGS(drive.state, drive.STATE_BROKEN))
@@ -36,7 +43,8 @@
 	old_accessible_z_levels = GLOB.using_map.accessible_z_levels.Copy()
 	for(var/z in affected_levels)
 		GLOB.using_map.accessible_z_levels -= "[z]" //not accessible during the jump
-	GLOB.using_map.ship_jump()
+	if (!keep_ship)
+		GLOB.using_map.ship_jump() // deletes the ship's overmap icon
 
 
 /datum/universal_state/bluespace_jump/OnExit()

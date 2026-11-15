@@ -29,12 +29,30 @@
 	var/thrust_limit = 1  //global thrust limit for all engines, 0..1
 	var/skill_needed = SKILL_TRAINED  //piloting skill needed to steer it without going in random dir
 	var/operator_skill
+	var/obj/machinery/bluespacedrive/bsd
+	var/jumping = FALSE
+	/// SHIP_MODE_HOP (speed-based, helm) or SHIP_MODE_JUMP (coordinate-based, BSD control). Decides which one the drive charges for.
+	var/mode = SHIP_MODE_HOP
+	/// Where a hop would land at the current speed and heading, kept up to date by calculate_hop_destination().
+	var/hop_x
+	var/hop_y
+	/// Overmap image of the hop landing spot, shown only to clients viewing the overmap through this ship's consoles.
+	var/image/hop_marker
+	var/show_hop_marker = TRUE
 
 /obj/overmap/visitable/ship/Initialize()
 	. = ..()
+	hop_marker = image('icons/obj/overmap.dmi', null, "event")
 	glide_size = world.icon_size
 	SSshuttle.ships += src
 	base_sensor_visibility = initial(base_sensor_visibility) + round(sqrt(vessel_mass/SENSOR_COEFFICENT),1)
+
+	for (var/obj/machinery/bluespacedrive/drive in SSmachines.machinery)
+		if (drive.z in map_z)
+			bsd = drive
+			bsd.ship = src
+			break
+	update_hop_marker() // also sets the drive's initial (hop) charge requirement
 
 /obj/overmap/visitable/ship/Destroy()
 	SSshuttle.ships -= src
@@ -93,6 +111,31 @@
 			toggle_move_stars(zz)
 		else
 			toggle_move_stars(zz, fore_dir)
+	update_hop_marker()
+
+/obj/overmap/visitable/ship/Move()
+	. = ..()
+	if (.)
+		update_hop_marker()
+
+/// Switches between hop and jump mode and updates charge requirements.
+/obj/overmap/visitable/ship/proc/toggle_mode()
+	if (jumping)
+		return FALSE
+	mode = (mode == SHIP_MODE_JUMP) ? SHIP_MODE_HOP : SHIP_MODE_JUMP
+	if (mode == SHIP_MODE_JUMP)
+		bsd?.reset_charge_requirement()
+	update_hop_marker()
+	return TRUE
+
+/// Re-targets the drive's hop charge requirement and moves the hop marker to where a hop would land (hidden when stationary or not in hop mode).
+/// Called when speed, heading, position or mode change, so UIs only need to read the drive's values.
+/obj/overmap/visitable/ship/proc/update_hop_marker()
+	if (mode == SHIP_MODE_HOP)
+		bsd?.get_hop_cost()
+	if (!hop_marker)
+		return
+	hop_marker.loc = (show_hop_marker && mode == SHIP_MODE_HOP && is_moving()) ? calculate_hop_destination() : null
 
 /obj/overmap/visitable/ship/proc/get_brake_path()
 	if(!get_acceleration())
@@ -189,3 +232,112 @@
 
 /obj/overmap/visitable/ship/proc/get_speed_sensor_increase()
 	return min(get_speed() * 1000, 50) //Engines should never increase sensor visibility by more than 50.
+
+/obj/overmap/visitable/ship/proc/can_jump(at_x, at_y, silent = FALSE)
+	if (!bsd)
+		to_chat(usr, SPAN_DANGER("This ship does not have a bluespace drive!"))
+		return FALSE
+	if (bsd.current_cooldown > world.time)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is still on cooldown!"))
+		return FALSE
+	if (bsd.current_charge < bsd.max_charge)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
+		return FALSE
+	if(at_x <= 1 || at_x >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The X coordinate is out of bounds!"))
+		return FALSE
+	if(at_y <= 1 || at_y >= GLOB.using_map.overmap_size)
+		to_chat(usr, SPAN_DANGER("The Y coordinate is out of bounds!"))
+		return FALSE
+
+	return TRUE
+
+/obj/overmap/visitable/ship/proc/can_hop()
+	if (!bsd)
+		to_chat(usr, SPAN_DANGER("This ship does not have a bluespace drive!"))
+		return FALSE
+	if (bsd.current_cooldown > world.time)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is still on cooldown!"))
+		return FALSE
+	if (bsd.current_charge < bsd.max_charge)
+		to_chat(usr, SPAN_DANGER("The bluespace drive is not charged enough to perform a jump!"))
+		return FALSE
+	if (!is_moving())
+		to_chat(usr, SPAN_DANGER("The ship must be in motion to perform a hop!"))
+		return FALSE
+	return TRUE
+
+/obj/overmap/visitable/ship/proc/calculate_jump_precision(user, dest_x, dest_y, skip_skill_check = FALSE)
+	if (skip_skill_check)
+		return 1
+	return
+
+/obj/overmap/visitable/ship/proc/long_range_jump(at_x, at_y)
+	return
+
+/// Updates hop_x/hop_y from the current speed and returns the destination turf (null if it is off the map).
+/obj/overmap/visitable/ship/proc/calculate_hop_destination()
+	hop_x = round(x + (speed[1] * 1000))
+	hop_y = round(y + (speed[2] * 1000))
+	return locate(hop_x, hop_y, z)
+
+/obj/overmap/visitable/ship/proc/start_microjump(at_x, at_y, jump_mode, accuracy, skip_jump_check = FALSE)
+	if (!skip_jump_check)
+		if (jump_mode == SHIP_MODE_JUMP && !can_jump(at_x, at_y))
+			return FALSE
+		else if (jump_mode == SHIP_MODE_HOP && !can_hop())
+			return FALSE
+
+	if (jump_mode == SHIP_MODE_JUMP)
+		//randomize coordinates based on accuracy
+		var/max_offset = round((1 - accuracy/100) * 10) //at 0% accuracy, max offset is 10, at 100% accuracy, max offset is 0
+		var/x_offset = rand(-max_offset, max_offset)
+		var/y_offset = rand(-max_offset, max_offset)
+		at_x += x_offset
+		at_y += y_offset
+
+	// The accuracy offset (or a hop at speed) can overshoot the overmap, which would send the ship to nullspace.
+	at_x = clamp(at_x, 2, GLOB.using_map.overmap_size - 1)
+	at_y = clamp(at_y, 2, GLOB.using_map.overmap_size - 1)
+
+	jumping = TRUE
+	bsd.perform_jump()
+
+	var/turf/destination = locate(at_x, at_y, z)
+	new /obj/ftl (destination)
+	new /obj/ftl (get_turf(src))
+	if (jump_mode == SHIP_MODE_HOP)
+		finish_microjump(at_x, at_y)
+		set_jump_effects(TRUE)
+		addtimer(new Callback(src, PROC_REF(set_jump_effects), FALSE), 2 SECONDS)
+		return
+
+	// Jumps spend time in bluespace: 5s up to 4 grid spaces, then +1s per extra grid space.
+	var/transit_time = 5 SECONDS + max(bsd.get_travel_distance(at_x, at_y) - 4, 0) * 1 SECOND
+	set_jump_effects(TRUE)
+	addtimer(new Callback(src, PROC_REF(finish_microjump), at_x, at_y), transit_time)
+	animate(src, time = 0.5 SECONDS)
+	animate(alpha = 0, time = 0.5 SECONDS)
+
+/// Shake and the bluespace jump state (blue screen etc.) for the ship's levels while a jump is underway.
+/obj/overmap/visitable/ship/proc/set_jump_effects(active)
+	// Never override or cancel any other universal state (e.g. the round-end jump); only manage our own.
+	var/datum/universal_state/bluespace_jump/current = GLOB.universe
+	var/ours = istype(current) && current.keep_ship
+	if (active)
+		if (GLOB.universe.type != /datum/universal_state && !ours)
+			return
+		for (var/mob/living/M as anything in GLOB.alive_mobs)
+			if (get_z(M) in map_z)
+				shake_camera(M, 20, 0.1)
+		SetUniversalState(/datum/universal_state/bluespace_jump, arguments=list(map_z, TRUE))
+	else if (ours)
+		SetUniversalState(/datum/universal_state)
+
+/obj/overmap/visitable/ship/proc/finish_microjump(at_x, at_y)
+	set_jump_effects(FALSE)
+	forceMove(locate(at_x, at_y, z))
+	update_hop_marker()
+	animate(src, alpha = 255, time = 0.5 SECONDS)
+	bsd.current_cooldown = world.time + bsd.cooldown_length
+	jumping = FALSE

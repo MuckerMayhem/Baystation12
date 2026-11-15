@@ -61,6 +61,8 @@
 	LAZYDISTINCTADD(viewers, weakref(user))
 	if(linked)
 		LAZYDISTINCTADD(linked.navigation_viewers, weakref(user))
+		linked.update_hop_marker()
+		user.client?.images |= linked.hop_marker
 
 /datum/nano_module/program/ship/proc/unlook(mob/user)
 	user.reset_view(null, FALSE)
@@ -74,3 +76,4 @@
 	LAZYREMOVE(viewers, weakref(user))
 	if(linked)
 		LAZYREMOVE(linked.navigation_viewers, weakref(user))
+		user.client?.images -= linked.hop_marker

@@ -113,52 +113,98 @@
 </div>
 
 	<div class='block' style='clear: both;'>
-		<h3>Navigation data</h3>
-		<div class='item'>
-			<div class="itemLabel">
-				Location:
+		<div style="float:left;width:70%">
+			<h3>Navigation data</h3>
+			<div class='item'>
+				<div class="itemLabel">
+					Location:
+				</div>
+				<div class="itemContent">
+						{{:data.sector}}
+				</div>
 			</div>
-			<div class="itemContent">
-					{{:data.sector}}
+			<div class='item'>
+				<div class="itemLabel">
+					Coordinates:
+				</div>
+				<div class="itemContent">
+					{{:data.s_x}} : {{:data.s_y}}
+				</div>
 			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Coordinates:
+			<div class='item'>
+				<div class="itemLabel">
+					Scan data:
+				</div>
+				<div class="itemContent">
+					{{:data.sector_info}}
+				</div>
 			</div>
-			<div class="itemContent">
-				{{:data.s_x}} : {{:data.s_y}}
+			<div class='item'>
+				<div class="itemLabel">
+					Status:
+				</div>
+				<div class="itemContent">
+					{{:data.landed}}
+				</div>
 			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Scan data:
-			</div>
-			<div class="itemContent">
-				{{:data.sector_info}}
-			</div>
-		</div>
-		<div class='item'>
-			<div class="itemLabel">
-				Status:
-			</div>
-			<div class="itemContent">
-				{{:data.landed}}
-			</div>
-		</div>
 		<div class='item'>
 			{{:helper.link('Save current position', 'disk', { 'add' : 'current' }, null)}}
 			{{:helper.link('Add new entry', 'document', { 'add' : 'new' }, null)}}
 		</div>
+		</div>
+	<div style="float:left;width:30%">
+	<fieldset style="min-height:180px;background-color: #202020;">
+		<legend style="text-align:center">Drive: {{:data.current_mode}} Mode</legend>
+		<div class="item">
+			{{:helper.link(data.hop_mode ? 'Hop Mode' : 'Jump Mode', 'shuffle', { 'mode' : 1 }, data.jumping ? 'disabled' : null, 'selected')}}
+		</div>
+		<div class='item'>
+			<div class="itemLabel">
+				Charge:
+			</div>
+			<div style="float:right">
+				{{:data.charge_percent}}%
+			</div>
+		</div>
+		{{if data.hop_mode}}
+			<div class='item'>
+				<div class="itemLabel">
+					Cost:
+				</div>
+				<div style="float:right">
+					{{:data.hop_cost}} MW
+				</div>
+			</div>
+			<div class='item'>
+				<div class="itemLabel">
+					Rate:
+				</div>
+				<div style="float:right">
+					{{:data.hop_rate}} MW/s
+				</div>
+			</div>
+			<div class="item">
+				{{:helper.link('Show Marker', 'pin-s', { 'toggle_hop_marker' : 1 }, null, data.show_hop_marker ? 'selected' : null)}}
+			</div>
+			<div class="item">
+				{{:helper.link(data.jumping ? 'Engaged' : 'Disengaged', 'gear', { 'hop' : 1 }, null, data.jumping ? 'selected' : null)}}
+			</div>
+		{{else}}
+			<div class="item">
+				Jumps are set and engaged from the Bluespace Drive Control program.
+			</div>
+		{{/if}}
+	</fieldset>
+	</div>
 		<div class='statusDisplay'>
-		<table style="width:100%">
-		<tr><th style="width:40%">Name<th>Coordinates<th>Actions
-		{{for data.locations}}
-			<tr class="candystripe"><td>{{:value.name}}
-			<td>{{:value.x}} : {{:value.y}}
-			<td>{{:helper.link('Plot course', 'arrowreturnthick-1-e', { 'x' : value.x, 'y' : value.y }, null, null)}}
-			{{:helper.link('Remove', 'close', { 'remove' : value.reference }, null, null)}}
-		{{/for}}
-		</table>
+			<table style="width:100%">
+				<tr><th style="width:40%">Name<th>Coordinates<th>Actions
+				{{for data.locations}}
+					<tr class="candystripe"><td>{{:value.name}}
+					<td>{{:value.x}} : {{:value.y}}
+					<td>{{:helper.link('Plot course', 'arrowreturnthick-1-e', { 'x' : value.x, 'y' : value.y }, null, null)}}
+					{{:helper.link('Remove', 'close', { 'remove' : value.reference }, null, null)}}
+				{{/for}}
+			</table>
 	</div>
 	</div>

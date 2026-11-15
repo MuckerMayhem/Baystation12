@@ -15,6 +15,8 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	var/list/known_sectors = list()
 	var/dx		//desitnation
 	var/dy		//coordinates
+	var/jump_dx
+	var/jump_dy
 	var/speedlimit = 1/(20 SECONDS) //top speed for autopilot, 5
 	var/accellimit = 0.001 //manual limiter for acceleration
 	/// The mob currently operating the helm - The last one to click one of the movement buttons and be on the overmap screen. Set to `null` for autopilot or when the mob isn't in range.
@@ -99,6 +101,11 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	else
 		var/turf/T = get_turf(linked)
 		var/obj/overmap/visitable/sector/current_sector = locate() in T
+		var/current_mode
+		if (linked.mode == SHIP_MODE_JUMP)
+			current_mode = "Jump"
+		else
+			current_mode = "Hop"
 
 		var/mob/living/silicon/silicon = user
 		data["viewing_silicon"] = ismachinerestricted(silicon)
@@ -118,6 +125,19 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		data["manual_control"] = viewing_overmap(user)
 		data["canburn"] = linked.can_burn()
 		data["accellimit"] = accellimit*1000
+		data["jump_dest"] = jump_dx && jump_dy
+		data["jump_d_x"] = jump_dx
+		data["jump_d_y"] = jump_dy
+		var/obj/machinery/bluespacedrive/bsd = linked.bsd // ships without a drive have none
+		data["jump_cost"] = bsd ? bsd.get_jump_cost_mw() : 0
+		data["show_hop_marker"] = linked.show_hop_marker
+		// Same figures as the BSD control program; the hop destination is derived from speed, so no movement means no cost
+		data["hop_cost"] = (bsd && linked.is_moving()) ? bsd.max_charge / 1000000 : 0
+		data["hop_rate"] = (bsd && linked.is_moving()) ? bsd.required_charge_per_second / 1000000 : 0
+		data["hop_mode"] = linked.mode == SHIP_MODE_HOP
+		data["jumping"] = linked.jumping
+		data["current_mode"] = current_mode
+		data["charge_percent"] = bsd ? bsd.get_charge_percentage() : 0
 
 		var/speed = round(linked.get_speed()*1000, 0.01)
 		if(linked.get_speed() < SHIP_SPEED_SLOW)
@@ -203,6 +223,7 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 		if (newy)
 			dy = clamp(newy, 1, world.maxy)
 
+
 	if (href_list["x"] && href_list["y"])
 		dx = text2num(href_list["x"])
 		dy = text2num(href_list["y"])
@@ -210,6 +231,34 @@ GLOBAL_LIST_EMPTY(overmap_helm_computers)
 	if (href_list["reset"])
 		dx = 0
 		dy = 0
+
+	if (href_list["hop"])
+		if (linked.mode != SHIP_MODE_HOP)
+			to_chat(user, SPAN_DANGER("The drive is set to jump mode. Switch to hop mode to perform a hop."))
+		else if (linked.jumping)
+			to_chat(user, SPAN_DANGER("The ship is already mid-jump!"))
+		else if (!linked.bsd)
+			to_chat(user, SPAN_DANGER("This ship does not have a bluespace drive!"))
+		else if (linked.is_moving())
+			if (!linked.calculate_hop_destination()) // also refreshes linked.hop_x/hop_y
+				to_chat(user, SPAN_DANGER("The hop destination is outside of the map!"))
+			else
+				linked.update_hop_marker() // make sure the charge requirement matches this exact destination
+				linked.start_microjump(linked.hop_x, linked.hop_y, SHIP_MODE_HOP)
+		else
+			to_chat(user, SPAN_DANGER("The ship must be in motion to perform a hop!"))
+
+	if (href_list["toggle_hop_marker"])
+		linked.show_hop_marker = !linked.show_hop_marker
+		linked.update_hop_marker()
+
+	if (href_list["jumpreset"])
+		jump_dx = 0
+		jump_dy = 0
+
+	if (href_list["mode"])
+		if (!linked.toggle_mode())
+			to_chat(user, SPAN_DANGER("The mode cannot be changed mid-jump!"))
 
 	if (href_list["speedlimit"])
 		var/newlimit = input("Autopilot Speed Limit (0 ~ [round(linked.max_autopilot * 1000, 0.1)])", "Autopilot speed limit", speedlimit * 1000) as num|null

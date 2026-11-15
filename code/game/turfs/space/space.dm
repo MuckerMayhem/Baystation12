@@ -19,7 +19,7 @@
 
 	set_extension(src, /datum/extension/support_lattice)
 
-	appearance = SSskybox.space_appearance_cache[(((x + y) ^ ~(x * y) + z) % 25) + 1]
+	reset_space_appearance()
 
 	if(!HasBelow(z))
 		return
@@ -33,6 +33,9 @@
 		return
 
 	return INITIALIZE_HINT_LATELOAD // oh no! we need to switch to being a different kind of turf!
+
+/turf/space/proc/reset_space_appearance()
+	appearance = SSskybox.space_appearance_cache[(((x + y) ^ ~(x * y) + z) % 25) + 1]
 
 /turf/space/Destroy()
 	// Cleanup cached z_eventually_space values above us.

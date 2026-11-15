@@ -62,6 +62,8 @@ somewhere on that shuttle. Subtypes of these can be then used to perform ship ov
 	LAZYDISTINCTADD(viewers, weakref(user))
 	if(linked)
 		LAZYDISTINCTADD(linked.navigation_viewers, weakref(user))
+		linked.update_hop_marker()
+		user.client?.images |= linked.hop_marker
 
 /obj/machinery/computer/ship/proc/unlook(mob/user)
 	user.reset_view(null, FALSE)
@@ -75,6 +77,7 @@ somewhere on that shuttle. Subtypes of these can be then used to perform ship ov
 	LAZYREMOVE(viewers, weakref(user))
 	if(linked)
 		LAZYREMOVE(linked.navigation_viewers, weakref(user))
+		user.client?.images -= linked.hop_marker
 
 /obj/machinery/computer/ship/proc/viewing_overmap(mob/user)
 	return (weakref(user) in viewers) || (linked && (weakref(user) in linked.navigation_viewers))

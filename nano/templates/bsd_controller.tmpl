@@ -1,0 +1,74 @@
+<h3>Drive Status: {{:data.jump_mode ? 'Jump Mode' : 'Hop Mode'}}</h3>
+{{if !data.jump_mode}}
+	<div class="item">
+		<span class="bad">Bluespace Tear Engine Modulation: Short-Range</span>
+	</div>
+{{/if}}
+<div class="item">
+	<div class="itemLabel">Drive Charge:</div>
+	<div class="itemContent">
+		{{:helper.displayBar(data.drive_charge, 0, 100, (data.drive_charge == 100) ? 'good' : (data.drive_charge >= 50) ? 'average' : 'bad')}} {{:data.drive_charge}}%
+	</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Required Rate:</div>
+	<div class="itemContent">{{:data.required_charge_rate}} MW/s</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Required Total:</div>
+	<div class="itemContent">{{:data.required_total_charge}} MW</div>
+</div>
+
+<h3>Capacitor</h3>
+<div class="item">
+	<div class="itemLabel">Available Power:</div>
+	<div class="itemContent">{{:data.available_power}} MW</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Maximum Input:</div>
+	<div class="itemContent">{{:helper.link(data.set_output + ' MW', null, {'set_output' : 1}, null)}}</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Throughput:</div>
+	<div class="itemContent">{{:data.last_charge}} MW</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Status:</div>
+	<div class="itemContent">{{:data.running ? "DISCHARGING" : "IDLE"}}</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Auto Charge:</div>
+	<div class="itemContent">
+		{{:helper.link(data.auto_charge ? 'ON' : 'OFF', null, {'toggle_auto_charge' : 1}, null, data.auto_charge ? 'selected' : null)}}
+		{{:helper.link('Begin Discharge', null, {'discharge' : 1}, null)}}
+	</div>
+</div>
+
+<h3>Jump</h3>
+<div class="item">
+	<div class="itemLabel">X Coordinate:</div>
+	<div class="itemContent">{{:helper.link(data.jump_dx, null, {'setjumpx' : 1}, data.jump_mode ? null : 'disabled')}}</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Y Coordinate:</div>
+	<div class="itemContent">{{:helper.link(data.jump_dy, null, {'setjumpy' : 1}, data.jump_mode ? null : 'disabled')}}</div>
+</div>
+<div class="item">
+	<div class="itemLabel">Calibration:</div>
+	<div class="itemContent">
+		{{if data.jump_mode}}
+			{{for data.calibration}}
+				{{:helper.link(value, null, {'calibration' : index}, null)}}
+			{{/for}}
+		{{else}}
+			{{for data.calibration}}
+				{{:helper.link(value, null, {'calibration' : index}, 'disabled')}}
+			{{/for}}
+		{{/if}}
+		&nbsp;{{:data.cal_accuracy}}% accuracy
+	</div>
+</div>
+<div class="item">
+	<div class="itemLabel">&nbsp;</div>
+	<div class="itemContent">{{:helper.link('JUMP', 'shuffle', {'jump' : 1}, data.jump_mode ? null : 'disabled')}}</div>
+</div>
